@@ -16,6 +16,7 @@ import {
     setRegistrosHistorial,
     setOffline,
     setLastUpdate,
+    getLastUpdate,        // ← AGREGAR ESTA LÍNEA
     setFechaInicio,
     getOffline,
     getDatosActuales,

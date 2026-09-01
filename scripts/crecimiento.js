@@ -19,6 +19,10 @@ import { actualizarTarjeta } from './sensores.js';
 
 let previewEtapa = null;
 
+// ============================================================
+// ACTUALIZAR PANEL DE CRECIMIENTO
+// ============================================================
+
 export function actualizarPanelCrecimiento(previewIdx = null) {
     const cultivo = getCultivoInfo();
     const diasActuales = obtenerDiasTranscurridos();
@@ -27,25 +31,53 @@ export function actualizarPanelCrecimiento(previewIdx = null) {
     const porcentaje = Math.min(100, Math.round((diasMostrar / cultivo.ciclo.promedio) * 100));
     const offline = getOffline();
 
-    document.getElementById('etapaIcono').textContent = etapaActual.nombre.split(' ')[0] || '🌱';
-    document.getElementById('etapaNombre').textContent = etapaActual.nombre;
-    document.getElementById('etapaDia').textContent = `Día ${diasMostrar}`;
-    document.getElementById('etapaDesc').textContent = etapaActual.descripcion;
-    document.getElementById('progresoPorcentaje').textContent = `${porcentaje}%`;
+    // ============================================================
+    // ACTUALIZAR ELEMENTOS CON VERIFICACIÓN DE EXISTENCIA
+    // ============================================================
 
+    // Etapa actual
+    const etapaIcono = document.getElementById('etapaIcono');
+    if (etapaIcono) etapaIcono.textContent = etapaActual.nombre.split(' ')[0] || '🌱';
+
+    const etapaNombre = document.getElementById('etapaNombre');
+    if (etapaNombre) etapaNombre.textContent = etapaActual.nombre;
+
+    const etapaDia = document.getElementById('etapaDia');
+    if (etapaDia) etapaDia.textContent = `Día ${diasMostrar}`;
+
+    const etapaDesc = document.getElementById('etapaDesc');
+    if (etapaDesc) etapaDesc.textContent = etapaActual.descripcion;
+
+    // Progreso
+    const progresoPorcentaje = document.getElementById('progresoPorcentaje');
+    if (progresoPorcentaje) progresoPorcentaje.textContent = `${porcentaje}%`;
+
+    // ==== BARRA DE PROGRESO (SOLUCIÓN DEL ERROR) ====
     const barra = document.getElementById('progresoBarra');
-    barra.style.width = `${porcentaje}%`;
-    barra.classList.toggle('offline', offline);
+    if (barra) {
+        barra.style.width = `${porcentaje}%`;
+        barra.classList.toggle('offline', offline);
+    } else {
+        console.warn('⚠️ Elemento progresoBarra no encontrado en el HTML');
+    }
 
-    document.getElementById('diasTranscurridos').textContent = diasMostrar;
-    document.getElementById('diasTotales').textContent = cultivo.ciclo.promedio;
+    const diasTranscurridos = document.getElementById('diasTranscurridos');
+    if (diasTranscurridos) diasTranscurridos.textContent = diasMostrar;
 
+    const diasTotales = document.getElementById('diasTotales');
+    if (diasTotales) diasTotales.textContent = cultivo.ciclo.promedio;
+
+    // Panel de crecimiento (offline)
     const panel = document.getElementById('panelCrecimiento');
-    const etapaPanel = document.getElementById('panelEtapaActual');
-    panel.classList.toggle('offline', offline);
-    etapaPanel.classList.toggle('offline', offline);
+    if (panel) panel.classList.toggle('offline', offline);
 
-    // Selector de etapas
+    const etapaPanel = document.getElementById('panelEtapaActual');
+    if (etapaPanel) etapaPanel.classList.toggle('offline', offline);
+
+    // ============================================================
+    // SELECTOR DE ETAPAS (BOTONES)
+    // ============================================================
+
     const selector = document.getElementById('selectorEtapas');
     if (selector) {
         let html = '';
@@ -62,7 +94,10 @@ export function actualizarPanelCrecimiento(previewIdx = null) {
         selector.innerHTML = html;
     }
 
-    // Mini etapas
+    // ============================================================
+    // MINI ETAPAS (LÍNEA DE TIEMPO)
+    // ============================================================
+
     const miniEtapas = document.getElementById('miniEtapas');
     if (miniEtapas) {
         let html = '';
@@ -78,34 +113,51 @@ export function actualizarPanelCrecimiento(previewIdx = null) {
         miniEtapas.innerHTML = html;
     }
 
+    // ============================================================
+    // BOTONES DE ACCIÓN (Aplicar / Cancelar / Día 0)
+    // ============================================================
+
     const hayPreview = previewIdx !== null;
     const btnAplicar = document.getElementById('btnAplicar');
     const btnCancelar = document.getElementById('btnCancelar');
     const btnDia0 = document.getElementById('btnDia0');
+    const cambioPendiente = document.getElementById('cambioPendiente');
 
+    // Si está offline, deshabilitar todo
     if (offline) {
-        btnAplicar.disabled = true;
-        btnCancelar.disabled = true;
-        btnDia0.disabled = true;
-        document.getElementById('cambioPendiente').style.display = 'none';
+        if (btnAplicar) btnAplicar.disabled = true;
+        if (btnCancelar) btnCancelar.disabled = true;
+        if (btnDia0) btnDia0.disabled = true;
+        if (cambioPendiente) cambioPendiente.style.display = 'none';
         return;
     }
 
+    // Si hay vista previa, activar botones
     if (hayPreview) {
-        btnAplicar.disabled = false;
-        btnCancelar.disabled = false;
-        btnDia0.disabled = true;
-        document.getElementById('cambioPendiente').style.display = 'flex';
-        const etapaActualNom = getEtapaActual(diasActuales).nombre;
-        document.getElementById('cambioPendienteTexto').textContent = etapaActualNom;
-        document.getElementById('cambioPendienteNuevo').textContent = cultivo.etapas[previewIdx].nombre;
+        if (btnAplicar) btnAplicar.disabled = false;
+        if (btnCancelar) btnCancelar.disabled = false;
+        if (btnDia0) btnDia0.disabled = true;
+        
+        if (cambioPendiente) {
+            cambioPendiente.style.display = 'flex';
+            const etapaActualNom = getEtapaActual(diasActuales).nombre;
+            const cambioTexto = document.getElementById('cambioPendienteTexto');
+            const cambioNuevo = document.getElementById('cambioPendienteNuevo');
+            if (cambioTexto) cambioTexto.textContent = etapaActualNom;
+            if (cambioNuevo) cambioNuevo.textContent = cultivo.etapas[previewIdx].nombre;
+        }
     } else {
-        btnAplicar.disabled = true;
-        btnCancelar.disabled = true;
-        btnDia0.disabled = false;
-        document.getElementById('cambioPendiente').style.display = 'none';
+        // Sin vista previa, deshabilitar botones
+        if (btnAplicar) btnAplicar.disabled = true;
+        if (btnCancelar) btnCancelar.disabled = true;
+        if (btnDia0) btnDia0.disabled = false;
+        if (cambioPendiente) cambioPendiente.style.display = 'none';
     }
 }
+
+// ============================================================
+// SELECCIONAR VISTA PREVIA DE ETAPA
+// ============================================================
 
 export function seleccionarPreview(idx) {
     if (getOffline()) return;
@@ -114,6 +166,7 @@ export function seleccionarPreview(idx) {
     const diasActuales = obtenerDiasTranscurridos();
     const etapaActual = getEtapaActual(diasActuales);
 
+    // Normalizar nombres para comparar (sin emojis, sin tildes)
     const nombreSeleccionado = cultivo.etapas[idx].nombre
         .replace(/[^a-zA-Záéíóúñ ]/g, '')
         .trim()
@@ -128,6 +181,7 @@ export function seleccionarPreview(idx) {
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, '');
 
+    // Si la etapa seleccionada ya es la actual, cancelar preview
     if (nombreSeleccionado === nombreActual) {
         cancelarPreview();
         return;
@@ -138,6 +192,10 @@ export function seleccionarPreview(idx) {
     actualizarPanelCrecimiento(idx);
 }
 
+// ============================================================
+// APLICAR CAMBIO DE ETAPA
+// ============================================================
+
 export function aplicarPreview() {
     if (previewEtapa === null || getOffline()) return;
 
@@ -145,6 +203,7 @@ export function aplicarPreview() {
     const etapa = cultivo.etapas[previewEtapa];
     const dias = etapa.dia;
 
+    // Calcular fecha para llegar a ese día
     const ahora = new Date();
     const nuevaFecha = new Date(ahora);
     nuevaFecha.setDate(nuevaFecha.getDate() - dias);
@@ -154,7 +213,7 @@ export function aplicarPreview() {
     localStorage.setItem('fechaSiembra', fechaStr);
     document.getElementById('fechaSiembraPanel').value = fechaStr;
 
-    // Mapear etapa para Firebase
+    // ===== MAPEAR ETAPA A FIREBASE (SIN TILDES) =====
     let etapaFirebase = "";
     const mapa = {
         "germinacion": "germinacion",
@@ -165,6 +224,7 @@ export function aplicarPreview() {
         "cosecha": "cosecha"
     };
 
+    // Normalizar el nombre de la etapa
     let nombreLimpio = etapa.nombre
         .replace(/[^a-zA-Záéíóúñ ]/g, '')
         .trim()
@@ -183,17 +243,19 @@ export function aplicarPreview() {
         etapaFirebase = nombreLimpio;
     }
 
-    // Escribir en Firebase
+    // ===== ESCRIBIR EN FIREBASE =====
     import('./firebase-config.js').then(({ etapaConfigRef, set }) => {
         set(etapaConfigRef, etapaFirebase)
             .then(() => console.log("✅ Etapa actualizada en Firebase:", etapaFirebase))
             .catch(err => console.error("❌ Error al actualizar etapa:", err));
     });
 
+    // Limpiar preview
     previewEtapa = null;
     setPreviewEtapa(null);
     actualizarPanelCrecimiento(null);
 
+    // Actualizar tarjetas de sensores
     const datos = getDatosActuales();
     if (datos) {
         for (const sensor in configuracion) {
@@ -202,21 +264,41 @@ export function aplicarPreview() {
         }
     }
 
-    document.getElementById('btnAplicar').disabled = true;
-    document.getElementById('btnCancelar').disabled = true;
-    document.getElementById('btnDia0').disabled = false;
-    document.getElementById('cambioPendiente').style.display = 'none';
+    // Deshabilitar botones
+    const btnAplicar = document.getElementById('btnAplicar');
+    const btnCancelar = document.getElementById('btnCancelar');
+    const btnDia0 = document.getElementById('btnDia0');
+    const cambioPendiente = document.getElementById('cambioPendiente');
+    
+    if (btnAplicar) btnAplicar.disabled = true;
+    if (btnCancelar) btnCancelar.disabled = true;
+    if (btnDia0) btnDia0.disabled = false;
+    if (cambioPendiente) cambioPendiente.style.display = 'none';
 }
+
+// ============================================================
+// CANCELAR VISTA PREVIA
+// ============================================================
 
 export function cancelarPreview() {
     previewEtapa = null;
     setPreviewEtapa(null);
     actualizarPanelCrecimiento(null);
-    document.getElementById('btnAplicar').disabled = true;
-    document.getElementById('btnCancelar').disabled = true;
-    document.getElementById('btnDia0').disabled = false;
-    document.getElementById('cambioPendiente').style.display = 'none';
+    
+    const btnAplicar = document.getElementById('btnAplicar');
+    const btnCancelar = document.getElementById('btnCancelar');
+    const btnDia0 = document.getElementById('btnDia0');
+    const cambioPendiente = document.getElementById('cambioPendiente');
+    
+    if (btnAplicar) btnAplicar.disabled = true;
+    if (btnCancelar) btnCancelar.disabled = true;
+    if (btnDia0) btnDia0.disabled = false;
+    if (cambioPendiente) cambioPendiente.style.display = 'none';
 }
+
+// ============================================================
+// REINICIAR A DÍA 0
+// ============================================================
 
 export function dia0() {
     if (getOffline()) return;
@@ -232,6 +314,7 @@ export function dia0() {
         setPreviewEtapa(null);
         actualizarPanelCrecimiento(null);
 
+        // Actualizar tarjetas de sensores
         const datos = getDatosActuales();
         if (datos) {
             for (const sensor in configuracion) {
@@ -242,7 +325,10 @@ export function dia0() {
     }
 }
 
-// Exponer globalmente
+// ============================================================
+// EXPONER FUNCIONES GLOBALMENTE PARA ONCLICK EN HTML
+// ============================================================
+
 window.seleccionarPreview = seleccionarPreview;
 window.aplicarPreview = aplicarPreview;
 window.cancelarPreview = cancelarPreview;
