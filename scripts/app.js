@@ -9,7 +9,7 @@ import {
 } from './firebase-config.js';
 
 // ============================================================
-// 1. BASE DE DATOS DE CULTIVOS
+// 1. BASE DE DATOS DE CULTIVOS (COMPLETA)
 // ============================================================
 
 const cultivosDB = {
@@ -130,35 +130,40 @@ const configuracion = {
         nombre: "pH",
         icono: "fa-flask",
         unidad: "",
-        decimales: 2
+        decimales: 2,
+        tieneRango: true
     },
     temp: {
         campo: "Temperatura_Ambiente",
         nombre: "Temp. Ambiente",
         icono: "fa-temperature-half",
         unidad: "°C",
-        decimales: 1
+        decimales: 1,
+        tieneRango: true
     },
     "temp-agua": {
         campo: "Temperatura_Agua",
         nombre: "Temp. Agua",
         icono: "fa-temperature-three-quarters",
         unidad: "°C",
-        decimales: 1
+        decimales: 1,
+        tieneRango: true
     },
     hum: {
         campo: "Humedad_Ambiente",
         nombre: "Humedad",
         icono: "fa-droplet",
         unidad: "%",
-        decimales: 1
+        decimales: 1,
+        tieneRango: true
     },
     luz: {
         campo: "luz",
         nombre: "Luz",
         icono: "fa-sun",
         unidad: " lux",
-        decimales: 0
+        decimales: 0,
+        tieneRango: true
     }
 };
 
@@ -176,7 +181,7 @@ let dataTimeout = null;
 const DATA_TIMEOUT_MS = 30000;
 
 // ============================================================
-// 4. FUNCIONES DE UTILIDAD
+// 4. FUNCIONES DE UTILIDAD (CON VALORES POR DEFECTO)
 // ============================================================
 
 function getCultivoInfo() {
@@ -185,24 +190,43 @@ function getCultivoInfo() {
 
 function getRangoPorEtapa(sensor, dias) {
     const cultivo = getCultivoInfo();
-    let etapaActual = cultivo.etapas[0];
     
+    // VALORES POR DEFECTO (por si falta el sensor en el cultivo)
+    const valoresPorDefecto = {
+        ph: { min: 5.0, max: 7.0, ideal: 6.0 },
+        temp: { min: 15, max: 28, ideal: 22 },
+        "temp-agua": { min: 18, max: 26, ideal: 22 },
+        humedad: { min: 40, max: 80, ideal: 60 },
+        luz: { min: 300, max: 800, ideal: 500 }
+    };
+    
+    // Si el sensor es "hum", buscar como "humedad" en el cultivo
+    let sensorKey = sensor;
+    if (sensor === 'hum') sensorKey = 'humedad';
+    
+    // Buscar en el cultivo
+    let rango = cultivo[sensorKey];
+    
+    // Si no existe, usar valores por defecto
+    if (!rango) {
+        rango = valoresPorDefecto[sensorKey] || valoresPorDefecto.ph;
+    }
+    
+    // Determinar etapa actual
+    let etapaActual = cultivo.etapas[0];
     for (let i = cultivo.etapas.length - 1; i >= 0; i--) {
         if (dias >= cultivo.etapas[i].dia) {
             etapaActual = cultivo.etapas[i];
             break;
         }
     }
-
-    const base = cultivo[sensor];
-    if (base) {
-        return { ...base, etapa: etapaActual.nombre };
-    }
-    return null;
+    
+    return { ...rango, etapa: etapaActual.nombre };
 }
 
 function obtenerDiasTranscurridos() {
-    // Si no hay fecha, usar 0
+    // Por ahora, siempre devuelve 0 (día de siembra)
+    // Puedes modificar esto para usar la fecha de Firebase si la tienes
     return 0;
 }
 
@@ -222,18 +246,33 @@ function obtenerEstado(sensor, valor) {
     const dias = obtenerDiasTranscurridos();
     const rango = getRangoPorEtapa(sensor, dias);
 
-    if (valor === null || valor === undefined || isNaN(valor)) {
+    // Si el valor no es válido
+    if (valor === null || valor === undefined || isNaN(valor) || valor === -273.1) {
         return { estado: "warning", texto: "⚠️ Sin datos" };
+    }
+
+    // Asegurarse de que rango existe
+    if (!rango || typeof rango.min !== 'number' || typeof rango.max !== 'number') {
+        return { estado: "warning", texto: "⚠️ Sin rango" };
     }
 
     const { min, max } = rango;
 
+    // Sensor de luz (comportamiento especial)
     if (sensor === 'luz') {
         if (valor < min) return { estado: "warning", texto: "🌑 Poca luz" };
         if (valor > max) return { estado: "danger", texto: "☀️ Exceso de luz" };
         return { estado: "ok", texto: "☀️ Buena luz" };
     }
 
+    // Sensor de temperatura (valores críticos)
+    if (sensor === 'temp' || sensor === 'temp-agua') {
+        if (valor < -100 || valor > 100) {
+            return { estado: "danger", texto: "❌ Sensor defectuoso" };
+        }
+    }
+
+    // Evaluación normal
     if (valor >= min && valor <= max) {
         return { estado: "ok", texto: "✅ Bueno" };
     }
@@ -248,7 +287,7 @@ function obtenerEstado(sensor, valor) {
 
 function formato(valor, sensor) {
     const c = configuracion[sensor];
-    if (!Number.isFinite(valor)) return "--";
+    if (!Number.isFinite(valor) || valor === -273.1) return "--";
     return valor.toFixed(c.decimales) + c.unidad;
 }
 
@@ -262,7 +301,7 @@ function renderizarSensores() {
 
     grid.innerHTML = '';
 
-    // Crear tarjetas
+    // Crear tarjetas para sensores con rango
     for (const [key, config] of Object.entries(configuracion)) {
         const card = document.createElement('div');
         card.className = 'sensor-card';
@@ -277,7 +316,7 @@ function renderizarSensores() {
         grid.appendChild(card);
     }
 
-    // Tarjeta de bomba (especial)
+    // Tarjeta de bomba (especial - no tiene rango)
     const bombaCard = document.createElement('div');
     bombaCard.className = 'sensor-card';
     bombaCard.id = 'card-bomba';
@@ -303,7 +342,8 @@ function actualizarTarjeta(sensor, valor) {
 
     if (!elemento) return;
 
-    if (isOffline || !Number.isFinite(valor)) {
+    // Si está offline o el valor no es válido
+    if (isOffline || !Number.isFinite(valor) || valor === -273.1) {
         card.classList.remove("estado-ok", "estado-warning", "estado-danger", "estado-off");
         card.classList.add("estado-offline");
         status.className = "sub sub-offline";
@@ -344,7 +384,7 @@ function actualizarTarjetaBomba(valor) {
         return;
     }
 
-    const encendida = valor === true || valor === "true";
+    const encendida = valor === true || valor === "true" || valor === 1;
     elemento.textContent = encendida ? "🔴 ON" : "⏸️ OFF";
     status.textContent = encendida ? "✅ Encendida" : "⏸️ Apagada";
     status.className = encendida ? "sub sub-ok" : "sub sub-off";
@@ -414,7 +454,7 @@ function actualizarTabla() {
         const tempAgua = Number(r.Temperatura_Agua);
         const hum = Number(r.Humedad_Ambiente);
         const luz = Number(r.luz);
-        const bombaOn = r.bomba === true || r.bomba === "true";
+        const bombaOn = r.bomba === true || r.bomba === "true" || r.bomba === 1;
 
         let fecha = "--";
         if (r.timestamp) {
@@ -447,11 +487,11 @@ function actualizarTabla() {
         html += `
             <tr>
                 <td style="color:#64748b; font-size:12px;">${fecha}</td>
-                <td>${Number.isFinite(ph) ? ph.toFixed(2) : "--"}</td>
-                <td>${Number.isFinite(temp) ? temp.toFixed(1)+"°C" : "--"}</td>
-                <td>${Number.isFinite(tempAgua) ? tempAgua.toFixed(1)+"°C" : "--"}</td>
-                <td>${Number.isFinite(hum) ? hum.toFixed(1)+"%" : "--"}</td>
-                <td>${Number.isFinite(luz) ? luz.toFixed(0)+" lux" : "--"}</td>
+                <td>${Number.isFinite(ph) && ph !== -273.1 ? ph.toFixed(2) : "--"}</td>
+                <td>${Number.isFinite(temp) && temp !== -273.1 ? temp.toFixed(1)+"°C" : "--"}</td>
+                <td>${Number.isFinite(tempAgua) && tempAgua !== -273.1 ? tempAgua.toFixed(1)+"°C" : "--"}</td>
+                <td>${Number.isFinite(hum) && hum !== -273.1 ? hum.toFixed(1)+"%" : "--"}</td>
+                <td>${Number.isFinite(luz) && luz !== -273.1 ? luz.toFixed(0)+" lux" : "--"}</td>
                 <td class="${bombaOn ? 'td-ok' : ''}">${bombaOn ? "🔴 ON" : "⚪ OFF"}</td>
                 <td class="${estadoClase}">${estadoTexto}</td>
             </tr>
@@ -554,7 +594,7 @@ function actualizarEstadoGeneral() {
 
     for (const sensor in configuracion) {
         const valor = Number(datosActuales[configuracion[sensor].campo]);
-        if (!Number.isFinite(valor)) continue;
+        if (!Number.isFinite(valor) || valor === -273.1) continue;
 
         const estado = obtenerEstado(sensor, valor);
         if (estado.estado === "danger") {
@@ -658,6 +698,15 @@ onValue(valorActualRef, snapshot => {
     actualizarTarjetaBomba(datos.bomba);
 
     actualizarEstadoGeneral();
+
+    console.log("📊 Datos recibidos:", {
+        pH: datos.PH,
+        temp: datos.Temperatura_Ambiente,
+        tempAgua: datos.Temperatura_Agua,
+        humedad: datos.Humedad_Ambiente,
+        luz: datos.luz,
+        bomba: datos.bomba
+    });
 
 }, error => {
     console.error("Firebase error (ValorActual):", error);
