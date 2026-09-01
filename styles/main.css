@@ -1,101 +1,337 @@
 /* ============================================================
-   GUÍA INTERACTIVA - VERSIÓN MEJORADA
+   GUÍA INTERACTIVA - VERSIÓN MEJORADA PARA MÓVIL
    ============================================================ */
 
-/* Fondo más sutil, menos invasivo */
-.guia-blur-zone {
+/* Overlay - fondo oscuro que cubre TODO */
+.guia-overlay {
     position: fixed;
-    z-index: 9990;
-    background: rgba(2, 6, 23, 0.50) !important;  /* Más transparente */
-    backdrop-filter: blur(2px) !important;        /* Menos blur */
-    -webkit-backdrop-filter: blur(2px) !important;
-    pointer-events: auto;
-    transition: all .3s ease;
-}
-
-/* Spotlight más sutil */
-.guia-spotlight {
-    position: fixed;
-    z-index: 9993;
-    border-radius: 12px;
-    pointer-events: none;
-    box-shadow: 0 0 0 2px #8b5cf6, 0 0 20px rgba(139, 92, 246, 0.30) !important;
-    transition: all .3s ease;
+    inset: 0;
+    z-index: 99999 !important;  /* Muy alto para que esté encima de todo */
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
     opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
 }
 
-/* Tarjeta más compacta en móvil */
+.guia-overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Ocultar las zonas de blur (ya no las usamos) */
+.guia-blur-zone {
+    display: none !important;
+}
+
+/* Ocultar spotlight (ya no lo usamos) */
+.guia-spotlight {
+    display: none !important;
+}
+
+/* TARJETA PRINCIPAL - centrada y visible */
 .guia-card {
-    position: fixed;
-    z-index: 9995;
-    width: min(460px, calc(100vw - 20px));
-    max-height: min(560px, calc(100vh - 20px));
+    position: relative !important;
+    z-index: 99999 !important;
+    width: 100%;
+    max-width: 480px;
+    max-height: 90vh;
     overflow-y: auto;
-    background: #0f172a;
+    background: #111827;
+    border: 2px solid #8b5cf6;
+    border-radius: 20px;
+    padding: 24px 20px;
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.9);
+    animation: guia-entrada 0.3s ease;
+    margin: auto;
+}
+
+@keyframes guia-entrada {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.guia-superior {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.guia-paso {
+    color: #a78bfa;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+}
+
+.guia-cerrar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
     border: 1px solid #334155;
+    background: #1e293b;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 16px;
+    transition: 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.guia-cerrar:hover {
+    border-color: #ef4444;
+    color: #fca5a5;
+}
+
+.guia-icono {
+    width: 56px;
+    height: 56px;
     border-radius: 16px;
-    padding: 20px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.8);
-    animation: guia-entrada .25s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(139, 92, 246, 0.12);
+    border: 1px solid rgba(139, 92, 246, 0.25);
+    color: #c4b5fd;
+    font-size: 26px;
+    margin-bottom: 14px;
 }
 
 .guia-card h2 {
-    font-size: 20px;
+    color: #f8fafc;
+    font-size: 22px;
+    line-height: 1.25;
+    margin-bottom: 8px;
 }
 
 .guia-card p {
-    font-size: 13px;
+    color: #94a3b8;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.guia-lista {
+    margin: 16px 0 4px;
+    display: grid;
+    gap: 8px;
 }
 
 .guia-item {
-    padding: 8px 12px;
-    font-size: 12.5px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 14px;
+    background: #0f172a;
+    border: 1px solid #263449;
+    border-radius: 11px;
+    color: #e2e8f0;
+    font-size: 13px;
+    line-height: 1.5;
 }
 
-/* En móvil, la tarjeta ocupa casi toda la pantalla */
-@media (max-width: 600px) {
+.guia-item i {
+    color: #8b5cf6;
+    margin-top: 2px;
+    min-width: 18px;
+    text-align: center;
+    font-size: 14px;
+}
+
+/* FOOTER - BOTONES GRANDES PARA MÓVIL */
+.guia-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #1e293b;
+    flex-wrap: wrap;
+}
+
+.guia-progreso {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.guia-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #334155;
+    transition: 0.2s;
+}
+
+.guia-dot.activo {
+    width: 24px;
+    border-radius: 6px;
+    background: #8b5cf6;
+}
+
+.guia-footer-botones {
+    display: flex;
+    gap: 8px;
+}
+
+.guia-boton {
+    border: none;
+    border-radius: 12px;
+    padding: 12px 22px;
+    background: #8b5cf6;
+    color: white;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.2s;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.guia-boton:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 25px rgba(139, 92, 246, 0.3);
+}
+
+.guia-boton.secundario {
+    background: #1e293b;
+    border: 1px solid #334155;
+    color: #cbd5e1;
+}
+
+.guia-boton.secundario:hover {
+    border-color: #475569;
+}
+
+/* ============================================================
+   RESPONSIVE - MÓVIL
+   ============================================================ */
+@media (max-width: 640px) {
+    .guia-overlay {
+        padding: 10px;
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+    }
+
     .guia-card {
-        width: calc(100vw - 16px) !important;
-        max-height: calc(100vh - 16px) !important;
-        left: 8px !important;
-        top: 8px !important;
-        border-radius: 12px;
-        padding: 16px;
+        padding: 18px 16px;
+        max-width: 100%;
+        max-height: 92vh;
+        border-radius: 16px;
+        border-width: 2px;
     }
-    
-    .guia-blur-zone {
-        background: rgba(2, 6, 23, 0.60) !important;
-        backdrop-filter: blur(3px) !important;
-        -webkit-backdrop-filter: blur(3px) !important;
+
+    .guia-card h2 {
+        font-size: 19px;
     }
-    
-    .guia-spotlight {
-        display: none !important;  /* Ocultar spotlight en móvil para no tapar */
+
+    .guia-card p {
+        font-size: 13px;
     }
-    
+
     .guia-item {
         font-size: 12px;
-        padding: 6px 10px;
+        padding: 8px 12px;
+        gap: 10px;
     }
-    
-    .guia-card h2 {
-        font-size: 18px;
+
+    .guia-item i {
+        font-size: 13px;
+        min-width: 16px;
     }
-    
+
     .guia-footer {
-        flex-wrap: wrap;
-        gap: 8px;
+        flex-direction: column;
+        gap: 10px;
+        align-items: stretch;
     }
-    
-    .guia-boton {
-        padding: 8px 14px;
-        font-size: 12px;
+
+    .guia-progreso {
+        justify-content: center;
+        order: 3;
+    }
+
+    .guia-footer-botones {
+        display: flex;
+        gap: 8px;
+        width: 100%;
+    }
+
+    .guia-footer-botones .guia-boton {
+        flex: 1;
+        justify-content: center;
+        padding: 14px 16px;
+        font-size: 14px;
+        min-height: 52px;
+        border-radius: 14px;
+    }
+
+    .guia-icono {
+        width: 48px;
+        height: 48px;
+        font-size: 22px;
+        margin-bottom: 12px;
+    }
+
+    .guia-superior {
+        margin-bottom: 12px;
+    }
+
+    .guia-paso {
+        font-size: 11px;
+    }
+
+    .guia-cerrar {
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+    }
+
+    .guia-lista {
+        gap: 6px;
+        margin: 12px 0 0;
     }
 }
 
-/* En escritorio, la tarjeta es más pequeña */
-@media (min-width: 601px) {
+/* Móviles muy pequeños */
+@media (max-width: 400px) {
     .guia-card {
-        max-width: 420px;
+        padding: 14px 12px;
+        max-height: 95vh;
+    }
+
+    .guia-card h2 {
+        font-size: 17px;
+    }
+
+    .guia-item {
+        font-size: 11px;
+        padding: 6px 10px;
+    }
+
+    .guia-footer-botones .guia-boton {
+        padding: 12px 12px;
+        font-size: 13px;
+        min-height: 46px;
     }
 }
