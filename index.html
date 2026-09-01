@@ -23,7 +23,7 @@
         <!-- ========== HEADER ========== -->
         <header class="header">
             <h1>
-                <img src="assets/images/logo-uts.png" alt="Logo UTS" class="logo" />
+                <img src="assets/images/logo-uts.png" alt="Logo UTS" class="logo" onerror="this.style.display='none'" />
                 Dashboard Aeroponia UTS
                 <span class="subtitulo">con soluciones prácticas</span>
             </h1>
@@ -90,7 +90,7 @@
                 </div>
             </div>
             <div class="seccion-contenido" id="sensores">
-                <div class="sensor-grid">
+                <div class="sensor-grid" id="sensorGrid">
                     <!-- Se genera dinámicamente desde app.js -->
                 </div>
             </div>
@@ -150,6 +150,7 @@
     </div>
 
     <!-- ========== SCRIPTS ========== -->
+    <!-- Usamos URLs completas para Firebase (más confiable) -->
     <script type="importmap">
         {
             "imports": {

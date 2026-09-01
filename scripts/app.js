@@ -1,5 +1,5 @@
 // ============================================================
-// APP - PUNTO DE ENTRADA PRINCIPAL (VERSIÓN SIMPLIFICADA)
+// APP - PUNTO DE ENTRADA PRINCIPAL (VERSIÓN CORREGIDA)
 // ============================================================
 
 import {
@@ -170,7 +170,6 @@ let cultivoSeleccionado = 'lechuga';
 let datosActuales = null;
 let registrosHistorial = [];
 let chartInstance = null;
-let fechaInicio = null;
 let isOffline = false;
 let lastUpdateTime = null;
 let dataTimeout = null;
@@ -203,12 +202,7 @@ function getRangoPorEtapa(sensor, dias) {
 }
 
 function obtenerDiasTranscurridos() {
-    if (fechaInicio) {
-        const ahora = new Date();
-        const inicio = new Date(fechaInicio);
-        const diff = ahora - inicio;
-        return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
-    }
+    // Si no hay fecha, usar 0
     return 0;
 }
 
@@ -263,7 +257,7 @@ function formato(valor, sensor) {
 // ============================================================
 
 function renderizarSensores() {
-    const grid = document.querySelector('.sensor-grid');
+    const grid = document.getElementById('sensorGrid');
     if (!grid) return;
 
     grid.innerHTML = '';
@@ -373,12 +367,20 @@ function actualizarPanelCrecimiento() {
     const etapaActual = getEtapaActual(dias);
     const porcentaje = Math.min(100, Math.round((dias / cultivo.ciclo.promedio) * 100));
 
-    document.getElementById('etapaIcono').textContent = etapaActual.nombre.split(' ')[0] || '🌱';
-    document.getElementById('etapaNombre').textContent = etapaActual.nombre;
-    document.getElementById('etapaDia').textContent = `Día ${dias}`;
-    document.getElementById('etapaDesc').textContent = cultivo.etapas.find(e => e.nombre === etapaActual.nombre)?.descripcion || '';
+    const etapaIcono = document.getElementById('etapaIcono');
+    if (etapaIcono) etapaIcono.textContent = etapaActual.nombre.split(' ')[0] || '🌱';
 
-    document.getElementById('progresoPorcentaje').textContent = `${porcentaje}%`;
+    const etapaNombre = document.getElementById('etapaNombre');
+    if (etapaNombre) etapaNombre.textContent = etapaActual.nombre;
+
+    const etapaDia = document.getElementById('etapaDia');
+    if (etapaDia) etapaDia.textContent = `Día ${dias}`;
+
+    const etapaDesc = document.getElementById('etapaDesc');
+    if (etapaDesc) etapaDesc.textContent = cultivo.etapas.find(e => e.nombre === etapaActual.nombre)?.descripcion || '';
+
+    const progresoPorcentaje = document.getElementById('progresoPorcentaje');
+    if (progresoPorcentaje) progresoPorcentaje.textContent = `${porcentaje}%`;
     
     const barra = document.getElementById('progresoBarra');
     if (barra) {
@@ -386,8 +388,11 @@ function actualizarPanelCrecimiento() {
         barra.classList.toggle('offline', isOffline);
     }
     
-    document.getElementById('diasTranscurridos').textContent = dias;
-    document.getElementById('diasTotales').textContent = cultivo.ciclo.promedio;
+    const diasTranscurridos = document.getElementById('diasTranscurridos');
+    if (diasTranscurridos) diasTranscurridos.textContent = dias;
+
+    const diasTotales = document.getElementById('diasTotales');
+    if (diasTotales) diasTotales.textContent = cultivo.ciclo.promedio;
 }
 
 // ============================================================
@@ -628,25 +633,7 @@ function reiniciarTimeout() {
 }
 
 // ============================================================
-// 12. INICIALIZACIÓN - CARGAR FECHA DE SIEMBRA
-// ============================================================
-
-const fechaGuardada = localStorage.getItem('fechaSiembra');
-const fechaPanel = document.getElementById('fechaSiembraPanel');
-
-if (fechaGuardada) {
-    fechaPanel.value = fechaGuardada;
-    fechaInicio = fechaGuardada;
-} else {
-    const hoy = new Date();
-    const fechaStr = hoy.toISOString().split('T')[0];
-    fechaPanel.value = fechaStr;
-    fechaInicio = fechaStr;
-    localStorage.setItem('fechaSiembra', fechaStr);
-}
-
-// ============================================================
-// 13. FIREBASE - VALOR ACTUAL
+// 12. FIREBASE - VALOR ACTUAL
 // ============================================================
 
 onValue(valorActualRef, snapshot => {
@@ -677,7 +664,7 @@ onValue(valorActualRef, snapshot => {
 });
 
 // ============================================================
-// 14. FIREBASE - HISTORIAL
+// 13. FIREBASE - HISTORIAL
 // ============================================================
 
 onValue(historialRef, snapshot => {
@@ -701,7 +688,7 @@ onValue(historialRef, snapshot => {
 });
 
 // ============================================================
-// 15. SELECTOR DE CULTIVO
+// 14. SELECTOR DE CULTIVO
 // ============================================================
 
 document.getElementById('selectorCultivo').addEventListener('change', function() {
@@ -719,12 +706,12 @@ document.getElementById('selectorCultivo').addEventListener('change', function()
 });
 
 // ============================================================
-// 16. INICIALIZACIÓN FINAL
+// 15. INICIALIZACIÓN FINAL
 // ============================================================
 
 renderizarSensores();
 actualizarPanelCrecimiento();
 reiniciarTimeout();
 
-console.log("🚀 Dashboard Aeroponia UTS - Versión simplificada");
-console.log("✅ Estructura limpia con menos archivos");
+console.log("🚀 Dashboard Aeroponia UTS - Versión corregida");
+console.log("✅ Firebase conectado y esperando datos...");
