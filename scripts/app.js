@@ -2,23 +2,12 @@
 // APP - PUNTO DE ENTRADA PRINCIPAL
 // ============================================================
 
-// Importar módulos
 import './firebase-config.js';
 import './guia.js';
-import './utils.js';
-import './cultivos-db.js';
-import './analisis.js';
-import './sensores.js';
-import './crecimiento.js';
-import './grafica.js';
-import './historial.js';
-import './asistente.js';
 
 import {
-    db,
     valorActualRef,
     historialRef,
-    set,
     onValue
 } from './firebase-config.js';
 
@@ -28,11 +17,8 @@ import {
     setOffline,
     setLastUpdate,
     setFechaInicio,
-    getFechaInicio,
-    getCultivoInfo,
     getOffline,
     getDatosActuales,
-    getRegistrosHistorial,
     configuracion
 } from './utils.js';
 
@@ -62,13 +48,12 @@ let dataTimeout = null;
 let offlineStartTime = null;
 let offlineTimerInterval = null;
 let datosRecibidos = false;
-let previewEtapa = null;
+let chatIniciado = false;
 
 // ============================================================
 // INICIALIZACIÓN
 // ============================================================
 
-// Renderizar sensores
 renderizarSensores();
 
 // Cargar fecha de siembra
@@ -85,7 +70,7 @@ if (fechaGuardada) {
 }
 
 // ============================================================
-// FUNCIONES DE ESTADO Y OFFLINE
+// FUNCIONES DE OFFLINE
 // ============================================================
 
 function actualizarEstadoOffline(offline) {
@@ -101,7 +86,6 @@ function actualizarEstadoOffline(offline) {
         badge.className = "status-badge offline";
         text.textContent = '📡 Sin datos ESP32';
         icon.className = 'fas fa-wifi-slash';
-
         banner.classList.add("visible");
 
         if (offlineStartTime === null) {
@@ -130,7 +114,6 @@ function actualizarEstadoOffline(offline) {
         badge.className = "status-badge connected";
         text.textContent = '✅ Conectado';
         icon.className = 'fas fa-circle';
-
         banner.classList.remove("visible");
 
         if (offlineStartTime !== null) {
@@ -154,7 +137,7 @@ function actualizarEstadoOffline(offline) {
         actualizarTarjetaBomba(datos.bomba);
     }
 
-    actualizarPanelCrecimiento(previewEtapa);
+    actualizarPanelCrecimiento(null);
     actualizarDetalleAbierto();
     actualizarAsistente();
     renderizarChips();
@@ -296,7 +279,7 @@ document.getElementById('selectorCultivo').addEventListener('change', function()
         }
         actualizarTarjetaBomba(datos.bomba);
         actualizarEstadoGeneral();
-        if (sensorAbierto) actualizarDetalle(sensorAbierto);
+        actualizarDetalleAbierto();
     }
 
     iniciarChat();

@@ -1,448 +1,72 @@
 // ============================================================
-// ASISTENTE - CONSEJOS Y CHAT
+// GRÁFICA CON CHART.JS
 // ============================================================
 
-import {
-    getDatosActuales,
-    getRegistrosHistorial,
-    getCultivoInfo,
-    getOffline,
-    getLastUpdate,
-    obtenerDiasTranscurridos,
-    getEtapaActual,
-    configuracion,
-    formato
-} from './utils.js';
+import { getRegistrosHistorial } from './utils.js';
 
-import { analizarSensor, generarSolucionesPracticas } from './analisis.js';
+let chartInstance = null;
 
-let chatIniciado = false;
-
-const preguntasChip = [
-    { id: "ph", texto: "🔬 pH", icono: "fa-flask" },
-    { id: "temp", texto: "🌡️ Temp. ambiente", icono: "fa-temperature-half" },
-    { id: "temp-agua", texto: "🌊 Temp. agua", icono: "fa-temperature-three-quarters" },
-    { id: "hum", texto: "💧 Humedad", icono: "fa-droplet" },
-    { id: "luz", texto: "💡 Luz", icono: "fa-sun" },
-    { id: "bomba", texto: "🔌 Bomba", icono: "fa-power-off" },
-    { id: "resumen", texto: "📊 Resumen general", icono: "fa-clipboard-list" },
-    { id: "cosecha", texto: "🌱 ¿Cuándo cosechar?", icono: "fa-calendar-check" },
-    { id: "soluciones", texto: "🔧 Todas las soluciones", icono: "fa-tools" },
-    { id: "etapa", texto: "🌿 Etapa actual", icono: "fa-seedling" }
-];
-
-export function actualizarAsistente() {
-    const container = document.getElementById("consejosContainer");
-    const estadoGeneral = document.getElementById("estado-general");
-
-    const datos = getDatosActuales();
+export function actualizarGrafica() {
     const registros = getRegistrosHistorial();
+    const ultimos = registros.slice(-40);
 
-    if (!datos || !registros.length) return;
-
-    const cultivo = getCultivoInfo();
-    const totalRegistros = registros.length;
-    const dias = obtenerDiasTranscurridos();
-    const etapaActual = getEtapaActual(dias);
-    const offline = getOffline();
-
-    if (offline) {
-        estadoGeneral.innerHTML = `📡 SIN DATOS | ${totalRegistros} reg.`;
-        estadoGeneral.style.color = "#ef4444";
-
-        container.innerHTML = `
-            <div class="consejo consejo-offline">
-                <div class="consejo-icono"><i class="fas fa-microchip"></i></div>
-                <div class="consejo-contenido">
-                    <h4>📡 ESP32 SIN TRANSMITIR DATOS</h4>
-                    <p>El sistema sigue funcionando de forma autónoma.</p>
-                    <p style="margin-top: 8px; color: #fcd34d;"><strong>🤖 MODO AUTÓNOMO ACTIVO</strong></p>
-                    <ul>
-                        <li>📊 ${totalRegistros} registros históricos</li>
-                        <li>🌱 ${etapaActual.nombre} (Día ${dias})</li>
-                    </ul>
-                </div>
-            </div>
-        `;
+    if (!ultimos.length) {
+        const canvas = document.getElementById("grafica");
+        if (canvas) {
+            const ctx = canvas.getContext("2d");
+            if (chartInstance) {
+                chartInstance.destroy();
+                chartInstance = null;
+            }
+        }
         return;
     }
 
-    let problemas = [];
-    let advertencias = [];
+    const labels = ultimos.map(r => r.timestamp ? new Date(r.timestamp).toLocaleTimeString() : "");
 
-    for (const sensor in configuracion) {
-        const valor = Number(datos[configuracion[sensor].campo]);
-        if (!Number.isFinite(valor)) continue;
+    const datasets = [
+        { label: "pH", data: ultimos.map(r => Number(r.PH) || null), borderColor: "#a78bfa",
+            backgroundColor: "rgba(167,139,250,.08)", tension: .3, pointRadius: 2, borderWidth: 2 },
+        { label: "Temp. ambiente °C", data: ultimos.map(r => Number(r.Temperatura_Ambiente) || null),
+            borderColor: "#fb923c", backgroundColor: "rgba(251,146,60,.08)", tension: .3, pointRadius: 2, borderWidth: 2 },
+        { label: "Temp. agua °C", data: ultimos.map(r => Number(r.Temperatura_Agua) || null),
+            borderColor: "#2dd4bf", backgroundColor: "rgba(45,212,191,.08)", tension: .3, pointRadius: 2, borderWidth: 2 },
+        { label: "Humedad %", data: ultimos.map(r => Number(r.Humedad_Ambiente) || null),
+            borderColor: "#38bdf8", backgroundColor: "rgba(56,189,248,.08)", tension: .3, pointRadius: 2, borderWidth: 2 },
+        { label: "Luz lux", data: ultimos.map(r => Number(r.luz) || null), borderColor: "#facc15",
+            backgroundColor: "rgba(250,204,21,.08)", tension: .3, pointRadius: 2, borderWidth: 2 }
+    ];
 
-        const analisis = analizarSensor(sensor, valor);
-        if (analisis.estado.estado === "danger") {
-            problemas.push({ sensor, analisis });
-        } else if (analisis.estado.estado === "warning" || analisis.anomalia) {
-            advertencias.push({ sensor, analisis });
-        }
-    }
+    const canvas = document.getElementById("grafica");
+    if (!canvas) return;
 
-    if (problemas.length) {
-        estadoGeneral.innerHTML = `🚨 ${problemas.length} problema(s) | 📊 ${totalRegistros}`;
-        estadoGeneral.style.color = "#fca5a5";
-    } else if (advertencias.length) {
-        estadoGeneral.innerHTML = `⚠️ ${advertencias.length} aviso(s) | 📊 ${totalRegistros}`;
-        estadoGeneral.style.color = "#fcd34d";
-    } else {
-        const porcentaje = Math.min(100, Math.round((dias / cultivo.ciclo.promedio) * 100));
-        estadoGeneral.innerHTML = `✅ OK | 📊 ${totalRegistros} | 🌱 ${porcentaje}%`;
-        estadoGeneral.style.color = "#86efac";
-    }
+    const ctx = canvas.getContext("2d");
+    if (chartInstance) chartInstance.destroy();
 
-    let html = "";
-
-    html += `
-        <div class="consejo consejo-info">
-            <div class="consejo-icono"><i class="fas fa-leaf"></i></div>
-            <div class="consejo-contenido">
-                <h4>🌱 ${cultivo.nombre} - ${cultivo.tipo}</h4>
-                <p>${cultivo.descripcion}</p>
-                <p style="margin-top:6px;">📊 ${totalRegistros} registros | 🌱 ${etapaActual.nombre} (Día ${dias})</p>
-            </div>
-        </div>
-    `;
-
-    problemas.forEach(item => {
-        const c = configuracion[item.sensor];
-        const sol = item.analisis.soluciones || { soluciones: [], explicacion: "" };
-        html += `
-            <div class="consejo consejo-danger">
-                <div class="consejo-icono"><i class="fas ${c.icono}"></i></div>
-                <div class="consejo-contenido">
-                    <h4>🚨 ${c.nombre} - ¡REQUIERE ACCIÓN!</h4>
-                    <p>${item.analisis.significado}</p>
-                    ${sol.soluciones && sol.soluciones.length > 0 ? `
-                        <p style="margin-top:8px; color:#fcd34d;"><strong>🔧 SOLUCIONES:</strong></p>
-                        <ul>
-                            ${sol.soluciones.map(s => `<li>${s}</li>`).join('')}
-                        </ul>
-                    ` : ''}
-                </div>
-            </div>
-        `;
-    });
-
-    advertencias.forEach(item => {
-        const c = configuracion[item.sensor];
-        const sol = item.analisis.soluciones || { soluciones: [], explicacion: "" };
-        html += `
-            <div class="consejo consejo-warning">
-                <div class="consejo-icono"><i class="fas ${c.icono}"></i></div>
-                <div class="consejo-contenido">
-                    <h4>⚠️ ${c.nombre}</h4>
-                    <p>${item.analisis.tendencia.texto}</p>
-                    ${sol.soluciones && sol.soluciones.length > 0 ? `
-                        <p style="margin-top:8px; color:#fcd34d;"><strong>🔧 Soluciones:</strong></p>
-                        <ul>
-                            ${sol.soluciones.slice(0, 4).map(s => `<li>${s}</li>`).join('')}
-                        </ul>
-                    ` : ''}
-                </div>
-            </div>
-        `;
-    });
-
-    if (!problemas.length && !advertencias.length) {
-        html += `
-            <div class="consejo consejo-ok">
-                <div class="consejo-icono"><i class="fas fa-circle-check"></i></div>
-                <div class="consejo-contenido">
-                    <h4>✅ Todo en orden</h4>
-                    <p>${cultivo.nombre} está en condiciones óptimas.</p>
-                </div>
-            </div>
-        `;
-    }
-
-    container.innerHTML = html;
-    iniciarChat();
-}
-
-export function iniciarChat() {
-    if (chatIniciado) return;
-    chatIniciado = true;
-
-    const cultivo = getCultivoInfo();
-    const dias = obtenerDiasTranscurridos();
-    const etapaActual = getEtapaActual(dias);
-
-    let mensajeInicial =
-        `🌱 ¡Hola! Soy tu asistente de ${cultivo.nombre}.\n\n` +
-        `📅 Día ${dias} - Etapa: ${etapaActual.nombre}\n` +
-        `${etapaActual.descripcion}\n\n` +
-        `💡 Elige una pregunta o toca un sensor para ver análisis.`;
-
-    if (getOffline()) {
-        mensajeInicial += `\n\n📡 <strong>ESP32 SIN TRANSMITIR DATOS</strong>\n🤖 MODO AUTÓNOMO ACTIVO`;
-    }
-
-    agregarMensaje(mensajeInicial, "bot");
-    renderizarChips();
-}
-
-export function renderizarChips() {
-    const cont = document.getElementById("chatChips");
-    if (!cont) return;
-
-    const offline = getOffline();
-
-    let hayUrgencia = false;
-    const datos = getDatosActuales();
-    if (datos && !offline) {
-        for (const sensor in configuracion) {
-            const valor = Number(datos[configuracion[sensor].campo]);
-            if (Number.isFinite(valor)) {
-                const estado = require('./utils.js').obtenerEstado(sensor, valor);
-                if (estado.estado === "danger") {
-                    hayUrgencia = true;
-                    break;
+    chartInstance = new Chart(ctx, {
+        type: "line",
+        data: { labels, datasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: "index", intersect: false },
+            plugins: {
+                legend: {
+                    labels: { color: "#94a3b8", boxWidth: 12, padding: 12, font: { size: 11 } }
                 }
+            },
+            scales: {
+                y: { grid: { color: "rgba(255,255,255,.04)" }, ticks: { color: "#64748b", font: { size: 10 } } },
+                x: { grid: { display: false }, ticks: { color: "#64748b", maxTicksLimit: 8, autoSkip: true,
+                        font: { size: 9 } } }
             }
         }
-    }
-
-    let html = preguntasChip.map(p => `
-        <button class="chip ${offline ? 'chip-offline' : ''} ${hayUrgencia && (p.id === 'soluciones' || p.id === 'resumen') ? 'chip-urgente' : ''}" onclick="window.preguntar('${p.id}')" ${offline ? 'disabled' : ''}>
-            <i class="fas ${p.icono}"></i> ${p.texto}
-        </button>
-    `).join("");
-
-    html += `
-        <button class="chip chip-reset" onclick="window.preguntar('reiniciar')">
-            <i class="fas fa-rotate"></i> Reiniciar
-        </button>
-    `;
-
-    cont.innerHTML = html;
+    });
 }
 
-function agregarMensaje(texto, tipo) {
-    const cont = document.getElementById("chatMensajes");
-    if (!cont) return;
-
-    const burbuja = document.createElement("div");
-    burbuja.className = `chat-bubble ${tipo}`;
-    burbuja.innerHTML = texto;
-    cont.appendChild(burbuja);
-    cont.scrollTop = cont.scrollHeight;
+export function destroyGrafica() {
+    if (chartInstance) {
+        chartInstance.destroy();
+        chartInstance = null;
+    }
 }
-
-function generarSolucionesCompletas() {
-    const datos = getDatosActuales();
-    const cultivo = getCultivoInfo();
-    let mensaje = `🔧 <strong>SOLUCIONES para ${cultivo.nombre}</strong>\n\n`;
-
-    if (getOffline()) {
-        mensaje += `📡 <strong>ESP32 SIN DATOS</strong>\n\n`;
-    }
-
-    for (const sensor in configuracion) {
-        const valor = Number(datos[configuracion[sensor].campo]);
-        if (!Number.isFinite(valor)) continue;
-
-        const analisis = analizarSensor(sensor, valor);
-        const c = configuracion[sensor];
-        const sol = analisis.soluciones || { soluciones: [], explicacion: "" };
-
-        mensaje += `<strong>${c.nombre}:</strong> `;
-        if (sensor === 'luz') {
-            mensaje += `${analisis.estado.texto}\n`;
-        } else {
-            mensaje += `${formato(valor, sensor)} (${analisis.estado.texto})\n`;
-        }
-        if (sol.explicacion) {
-            mensaje += `${sol.explicacion}\n`;
-        }
-        if (sol.soluciones && sol.soluciones.length > 0) {
-            mensaje += `🔹 ${sol.soluciones.join('\n🔹 ')}\n`;
-        }
-        mensaje += `\n`;
-    }
-
-    return mensaje;
-}
-
-export function preguntar(id) {
-    if (id === "reiniciar") {
-        document.getElementById("chatMensajes").innerHTML = "";
-        chatIniciado = false;
-        iniciarChat();
-        return;
-    }
-
-    const datos = getDatosActuales();
-    const registros = getRegistrosHistorial();
-
-    if (!datos || !registros.length) {
-        const p = preguntasChip.find(x => x.id === id);
-        if (p) agregarMensaje(p.texto, "user");
-        agregarMensaje("⏳ Esperando datos...", "bot");
-        return;
-    }
-
-    const cultivo = getCultivoInfo();
-    const dias = obtenerDiasTranscurridos();
-    const etapaActual = getEtapaActual(dias);
-    const offline = getOffline();
-
-    if (offline) {
-        // Respuestas en modo offline
-        if (id === "resumen") {
-            agregarMensaje("📊 Dame un resumen general", "user");
-            let mensaje =
-                `📊 <strong>RESUMEN (MODO AUTÓNOMO)</strong>\n\n` +
-                `📡 ESP32 SIN DATOS\n` +
-                `📈 ${registros.length} registros\n` +
-                `🌱 ${etapaActual.nombre} (Día ${dias})\n\n`;
-            for (const sensor in configuracion) {
-                const valor = Number(datos[configuracion[sensor].campo]);
-                if (!Number.isFinite(valor)) continue;
-                const analisis = analizarSensor(sensor, valor);
-                if (sensor === 'luz') {
-                    mensaje += `${configuracion[sensor].nombre}: ${analisis.estado.texto}\n`;
-                } else {
-                    mensaje += `${configuracion[sensor].nombre}: ${formato(valor, sensor)} (${analisis.estado.texto})\n`;
-                }
-            }
-            mensaje += `\n⏱️ Última actualización: ${getLastUpdate() ? getLastUpdate().toLocaleTimeString() : '--'}`;
-            agregarMensaje(mensaje, "bot");
-            return;
-        }
-
-        if (id === "cosecha") {
-            agregarMensaje("🌱 ¿Cuándo estará listo?", "user");
-            const porcentaje = Math.min(100, Math.round((dias / cultivo.ciclo.promedio) * 100));
-            let mensaje = `🌱 <strong>Análisis de COSECHA</strong>\n\n`;
-            mensaje += `📅 ${dias} días | 📈 ${porcentaje}% completado\n`;
-            mensaje += `🌿 ${etapaActual.nombre}\n\n📡 Modo autónomo activo.\n`;
-            if (porcentaje >= 100) mensaje += `✅ ¡LISTO PARA COSECHAR!`;
-            else if (porcentaje > 80) mensaje += `🔜 Casi listo.`;
-            else mensaje += `🌱 Sigue cuidando las plantas.`;
-            agregarMensaje(mensaje, "bot");
-            return;
-        }
-
-        // Para cualquier otro id en modo offline
-        const c = configuracion[id];
-        if (c) {
-            const p = preguntasChip.find(x => x.id === id);
-            if (p) agregarMensaje(p.texto, "user");
-            const valor = Number(datos[c.campo]);
-            if (!Number.isFinite(valor)) {
-                agregarMensaje(`⏳ No tengo lectura de ${c.nombre}.`, "bot");
-                return;
-            }
-            let mensaje = `📡 <strong>MODO AUTÓNOMO</strong>\n\n`;
-            if (id === 'luz') {
-                mensaje += `${c.nombre}: ${obtenerEstado(id, valor).texto}\n`;
-            } else {
-                mensaje += `${c.nombre}: ${formato(valor, id)} (${obtenerEstado(id, valor).texto})\n`;
-            }
-            mensaje += `\n📡 ESP32 no está transmitiendo datos nuevos.`;
-            agregarMensaje(mensaje, "bot");
-            return;
-        }
-
-        agregarMensaje("📡 El sistema está en MODO AUTÓNOMO.", "bot");
-        return;
-    }
-
-    // ===== MODO NORMAL =====
-    if (id === "resumen") {
-        agregarMensaje("📊 Dame un resumen general", "user");
-        const porcentaje = Math.min(100, Math.round((dias / cultivo.ciclo.promedio) * 100));
-        let mensaje =
-            `📊 <strong>RESUMEN de ${cultivo.nombre}</strong>\n\n📈 ${registros.length} registros\n🌱 ${etapaActual.nombre} (Día ${dias})\n📈 ${porcentaje}% completado\n\n`;
-        for (const sensor in configuracion) {
-            const valor = Number(datos[configuracion[sensor].campo]);
-            if (!Number.isFinite(valor)) continue;
-            const analisis = analizarSensor(sensor, valor);
-            if (sensor === 'luz') {
-                mensaje += `${configuracion[sensor].nombre}: ${analisis.estado.texto}\n`;
-            } else {
-                mensaje += `${configuracion[sensor].nombre}: ${formato(valor, sensor)} (${analisis.estado.texto})\n`;
-            }
-        }
-        agregarMensaje(mensaje, "bot");
-        return;
-    }
-
-    if (id === "cosecha") {
-        agregarMensaje("🌱 ¿Cuándo estará listo?", "user");
-        const porcentaje = Math.min(100, Math.round((dias / cultivo.ciclo.promedio) * 100));
-        let mensaje = `🌱 <strong>Análisis de COSECHA</strong>\n\n📅 ${dias} días | 📈 ${porcentaje}% completado\n🌿 ${etapaActual.nombre}\n\n`;
-        if (porcentaje >= 100) mensaje += `✅ ¡LISTO PARA COSECHAR!`;
-        else if (porcentaje > 80) mensaje += `🔜 Casi listo.`;
-        else mensaje += `🌱 Sigue cuidando las plantas.`;
-        agregarMensaje(mensaje, "bot");
-        return;
-    }
-
-    if (id === "etapa") {
-        agregarMensaje("🌿 ¿En qué etapa estoy?", "user");
-        let mensaje = `🌿 <strong>Etapa actual</strong>\n\n📅 Día ${dias}\n🌱 ${etapaActual.nombre}\n${etapaActual.descripcion}\n\n📋 <strong>Todas las etapas:</strong>\n`;
-        cultivo.etapas.forEach(e => {
-            const esActual = e.nombre === etapaActual.nombre;
-            mensaje += `${esActual ? '👉' : '  '} Día ${e.dia}: ${e.nombre}\n`;
-        });
-        agregarMensaje(mensaje, "bot");
-        return;
-    }
-
-    if (id === "soluciones") {
-        agregarMensaje("🔧 Dame todas las soluciones", "user");
-        agregarMensaje(generarSolucionesCompletas(), "bot");
-        return;
-    }
-
-    if (id === "bomba") {
-        agregarMensaje("🔌 ¿Cómo está la bomba?", "user");
-        const valor = datos.bomba === true || datos.bomba === "true";
-        agregarMensaje(valor ? "✅ La bomba está ENCENDIDA." : "⏸️ La bomba está APAGADA.", "bot");
-        return;
-    }
-
-    const c = configuracion[id];
-    if (!c) {
-        agregarMensaje("❓ No entendí la pregunta.", "bot");
-        return;
-    }
-
-    const p = preguntasChip.find(x => x.id === id);
-    const valor = Number(datos[c.campo]);
-
-    if (p) agregarMensaje(p.texto, "user");
-
-    if (!Number.isFinite(valor)) {
-        agregarMensaje(`⏳ No tengo lectura de ${c.nombre}.`, "bot");
-        return;
-    }
-
-    const analisis = analizarSensor(id, valor);
-    const sol = analisis.soluciones || { soluciones: [], explicacion: "" };
-
-    let mensaje = `<strong>${c.nombre}:</strong> `;
-    if (id === 'luz') {
-        mensaje += `${analisis.estado.texto}\n\n`;
-    } else {
-        mensaje += `${formato(valor, id)} (${analisis.estado.texto})\n\n`;
-    }
-    mensaje += analisis.significado + "\n\n";
-
-    if (sol.soluciones && sol.soluciones.length > 0) {
-        mensaje += `🔧 <strong>SOLUCIONES:</strong>\n`;
-        mensaje += sol.soluciones.map(s => `• ${s}`).join('\n');
-    } else {
-        mensaje += `✅ Todo en orden.`;
-    }
-
-    agregarMensaje(mensaje, "bot");
-}
-
-// Exponer globalmente
-window.preguntar = preguntar;

@@ -11,6 +11,7 @@ let registrosHistorial = [];
 let fechaInicio = null;
 let isOffline = false;
 let lastUpdateTime = null;
+let previewEtapa = null;
 
 export function setCultivo(valor) {
     cultivoSeleccionado = valor;
@@ -62,6 +63,14 @@ export function setLastUpdate(time) {
 
 export function getLastUpdate() {
     return lastUpdateTime;
+}
+
+export function setPreviewEtapa(valor) {
+    previewEtapa = valor;
+}
+
+export function getPreviewEtapa() {
+    return previewEtapa;
 }
 
 export function obtenerDiasTranscurridos() {

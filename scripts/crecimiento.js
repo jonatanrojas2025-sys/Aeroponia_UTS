@@ -8,8 +8,14 @@ import {
     getEtapaActual,
     getOffline,
     setFechaInicio,
-    getFechaInicio
+    getFechaInicio,
+    getDatosActuales,
+    configuracion,
+    setPreviewEtapa,
+    getPreviewEtapa
 } from './utils.js';
+
+import { actualizarTarjeta } from './sensores.js';
 
 let previewEtapa = null;
 
@@ -128,6 +134,7 @@ export function seleccionarPreview(idx) {
     }
 
     previewEtapa = idx;
+    setPreviewEtapa(idx);
     actualizarPanelCrecimiento(idx);
 }
 
@@ -176,7 +183,7 @@ export function aplicarPreview() {
         etapaFirebase = nombreLimpio;
     }
 
-    // Escribir en Firebase (import dinámico para evitar dependencia circular)
+    // Escribir en Firebase
     import('./firebase-config.js').then(({ etapaConfigRef, set }) => {
         set(etapaConfigRef, etapaFirebase)
             .then(() => console.log("✅ Etapa actualizada en Firebase:", etapaFirebase))
@@ -184,17 +191,15 @@ export function aplicarPreview() {
     });
 
     previewEtapa = null;
+    setPreviewEtapa(null);
     actualizarPanelCrecimiento(null);
 
-    // Actualizar tarjetas
     const datos = getDatosActuales();
     if (datos) {
-        import('./sensores.js').then(({ actualizarTarjeta }) => {
-            for (const sensor in configuracion) {
-                const valor = Number(datos[configuracion[sensor].campo]);
-                actualizarTarjeta(sensor, valor);
-            }
-        });
+        for (const sensor in configuracion) {
+            const valor = Number(datos[configuracion[sensor].campo]);
+            actualizarTarjeta(sensor, valor);
+        }
     }
 
     document.getElementById('btnAplicar').disabled = true;
@@ -205,6 +210,7 @@ export function aplicarPreview() {
 
 export function cancelarPreview() {
     previewEtapa = null;
+    setPreviewEtapa(null);
     actualizarPanelCrecimiento(null);
     document.getElementById('btnAplicar').disabled = true;
     document.getElementById('btnCancelar').disabled = true;
@@ -223,16 +229,15 @@ export function dia0() {
         document.getElementById('fechaSiembraPanel').value = fechaStr;
 
         previewEtapa = null;
+        setPreviewEtapa(null);
         actualizarPanelCrecimiento(null);
 
         const datos = getDatosActuales();
         if (datos) {
-            import('./sensores.js').then(({ actualizarTarjeta }) => {
-                for (const sensor in configuracion) {
-                    const valor = Number(datos[configuracion[sensor].campo]);
-                    actualizarTarjeta(sensor, valor);
-                }
-            });
+            for (const sensor in configuracion) {
+                const valor = Number(datos[configuracion[sensor].campo]);
+                actualizarTarjeta(sensor, valor);
+            }
         }
     }
 }

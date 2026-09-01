@@ -7,7 +7,8 @@ import {
     getRangoPorEtapa, 
     obtenerDiasTranscurridos,
     formato,
-    configuracion 
+    configuracion,
+    obtenerEstado
 } from './utils.js';
 
 export function obtenerEstadisticasHistoricas(sensor) {
@@ -181,7 +182,7 @@ export function analizarSensor(sensor, valor) {
     const stats = obtenerEstadisticasHistoricas(sensor);
     const tendencia = obtenerTendenciaReal(sensor, 20);
     const anomalia = detectarAnomaliaConHistorial(sensor, valor);
-    const estado = require('./utils.js').obtenerEstado(sensor, valor);
+    const estado = obtenerEstado(sensor, valor);
     const soluciones = generarSolucionesPracticas(sensor, valor);
 
     let significado = "";

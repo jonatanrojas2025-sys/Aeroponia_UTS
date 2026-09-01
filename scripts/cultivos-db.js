@@ -173,7 +173,7 @@ export const rangosPorDefecto = {
     luz: { min: 300, max: 800, ideal: 500, unidad: " lux" }
 };
 
-// CONFIGURACIÓN DE SENSORES (nombre, campo, icono, etc.)
+// CONFIGURACIÓN DE SENSORES
 export const configuracion = {
     ph: {
         campo: "PH",

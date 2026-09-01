@@ -119,10 +119,6 @@ const guiaPasos = [
 let guiaActiva = false;
 let guiaIndice = 0;
 
-// ============================================================
-// FUNCIONES
-// ============================================================
-
 function cerrarGuia() {
     guiaActiva = false;
     const overlay = document.getElementById("guiaOverlay");
@@ -130,7 +126,6 @@ function cerrarGuia() {
         overlay.classList.remove("visible");
     }
     document.body.classList.remove("guia-activa");
-    // Guardar que ya se vio
     localStorage.setItem('guiaAeroponiaVista', '1');
 }
 
@@ -138,7 +133,6 @@ function mostrarPaso(indice) {
     guiaIndice = Math.max(0, Math.min(indice, guiaPasos.length - 1));
     const paso = guiaPasos[guiaIndice];
 
-    // Actualizar elementos
     document.getElementById("guiaPaso").textContent = 
         guiaIndice === 0 ? "BIENVENIDO" : `PASO ${guiaIndice} DE ${guiaPasos.length - 2}`;
     
@@ -146,7 +140,6 @@ function mostrarPaso(indice) {
     document.getElementById("guiaTitulo").textContent = paso.titulo;
     document.getElementById("guiaTexto").textContent = paso.texto;
 
-    // Lista de items
     const lista = document.getElementById("guiaLista");
     lista.innerHTML = paso.lista.map(item => `
         <div class="guia-item">
@@ -155,13 +148,11 @@ function mostrarPaso(indice) {
         </div>
     `).join("");
 
-    // Progreso
     const progreso = document.getElementById("guiaProgreso");
     progreso.innerHTML = guiaPasos.map((_, i) =>
         `<span class="guia-dot ${i === guiaIndice ? "activo" : ""}"></span>`
     ).join("");
 
-    // Botones
     document.getElementById("guiaAnterior").style.display = guiaIndice > 0 ? "inline-flex" : "none";
 
     const esUltimo = guiaIndice === guiaPasos.length - 1;
@@ -172,7 +163,6 @@ function mostrarPaso(indice) {
             ? `Comenzar <i class="fas fa-arrow-right"></i>`
             : `Siguiente <i class="fas fa-arrow-right"></i>`);
 
-    // Mostrar overlay
     const overlay = document.getElementById("guiaOverlay");
     overlay.classList.add("visible");
     guiaActiva = true;
@@ -183,26 +173,19 @@ function abrirGuia(desdeInicio = false) {
     mostrarPaso(desdeInicio ? 0 : 0);
 }
 
-// ============================================================
-// INICIALIZACIÓN
-// ============================================================
-
+// Inicialización
 document.addEventListener('DOMContentLoaded', () => {
-    // Botón para abrir guía
     document.getElementById("btnGuia")?.addEventListener("click", (e) => {
         e.preventDefault();
         abrirGuia(true);
     });
 
-    // Cerrar con X
     document.getElementById("guiaCerrar")?.addEventListener("click", cerrarGuia);
 
-    // Botón anterior
     document.getElementById("guiaAnterior")?.addEventListener("click", () => {
         if (guiaIndice > 0) mostrarPaso(guiaIndice - 1);
     });
 
-    // Botón siguiente
     document.getElementById("guiaSiguiente")?.addEventListener("click", () => {
         if (guiaIndice >= guiaPasos.length - 1) {
             cerrarGuia();
@@ -211,24 +194,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Cerrar al tocar fuera (solo el overlay, no la tarjeta)
     document.getElementById("guiaOverlay")?.addEventListener("click", (e) => {
         if (e.target === document.getElementById("guiaOverlay")) {
             cerrarGuia();
         }
     });
 
-    // Cerrar con ESC
     document.addEventListener("keydown", (e) => {
         if (e.key === "Escape" && guiaActiva) cerrarGuia();
     });
 
-    // Mostrar guía solo si es primera vez
     if (!localStorage.getItem('guiaAeroponiaVista')) {
         setTimeout(() => abrirGuia(true), 600);
     }
 });
 
-// Exponer globalmente
 window.abrirGuia = abrirGuia;
 window.cerrarGuia = cerrarGuia;

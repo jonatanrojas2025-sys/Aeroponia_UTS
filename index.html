@@ -1,29 +1,29 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard Aeroponia UTS</title>
 
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
     <!-- Estilos -->
-    <link rel="stylesheet" href="styles/main.css?v=2">
+    <link rel="stylesheet" href="styles/main.css?v=2" />
 
     <!-- Favicon -->
-    <link rel="icon" href="assets/images/favicon.ico">
+    <link rel="icon" href="assets/images/favicon.ico" />
 </head>
 <body>
 
     <div class="container">
 
-        <!-- HEADER -->
+        <!-- ========== HEADER ========== -->
         <header class="header">
             <h1>
-                <img src="assets/images/logo.png" alt="Logo" class="logo">
+                <img src="assets/images/logo-uts.png" alt="Logo UTS" class="logo" />
                 Dashboard Aeroponia UTS
                 <span class="subtitulo">con soluciones prácticas</span>
             </h1>
@@ -49,18 +49,20 @@
             </div>
         </header>
 
-        <!-- OFFLINE BANNER -->
+        <!-- ========== OFFLINE BANNER ========== -->
         <div class="offline-banner" id="offlineBanner">
             <div class="offline-banner-icon"><i class="fas fa-wifi-slash"></i></div>
             <div class="offline-banner-content">
                 <h3>⚠️ SIN DATOS DEL ESP32</h3>
-                <p>El sistema sigue funcionando de forma autónoma.</p>
-                <span class="autonomo">🤖 MODO AUTÓNOMO ACTIVO</span>
+                <p>
+                    El sistema sigue funcionando de forma autónoma.
+                    <span class="autonomo">🤖 MODO AUTÓNOMO ACTIVO</span>
+                </p>
                 <p>Última actualización: <span id="ultimaActualizacion">--</span></p>
             </div>
         </div>
 
-        <!-- PANEL DE CRECIMIENTO -->
+        <!-- ========== PANEL DE CRECIMIENTO ========== -->
         <section class="panel-crecimiento" id="panelCrecimiento">
             <div class="panel-crecimiento-titulo">
                 <i class="fas fa-chart-simple"></i> 📈 Progreso del Cultivo
@@ -98,7 +100,7 @@
                     </div>
                     <div class="panel-fecha-input">
                         <label for="fechaSiembraPanel"><i class="fas fa-calendar-day"></i> Inicio:</label>
-                        <input type="date" id="fechaSiembraPanel">
+                        <input type="date" id="fechaSiembraPanel" />
                         <button class="btn-etapa" id="btnHoy">Hoy</button>
                         <button class="btn-etapa" id="btnSemana">-7 días</button>
                     </div>
@@ -106,13 +108,13 @@
             </div>
         </section>
 
-        <!-- ALERTA GENERAL -->
+        <!-- ========== ALERTA GENERAL ========== -->
         <div class="alerta-box" id="alertaBox">
             <i class="fas fa-spinner fa-spin"></i>
             <span>Esperando datos...</span>
         </div>
 
-        <!-- SENSORES -->
+        <!-- ========== SENSORES ========== -->
         <section class="seccion" id="seccion-sensores">
             <div class="seccion-header" onclick="toggleSeccion('sensores')">
                 <div class="seccion-titulo">
@@ -129,7 +131,7 @@
             </div>
         </section>
 
-        <!-- GRÁFICA -->
+        <!-- ========== GRÁFICA ========== -->
         <section class="seccion">
             <div class="seccion-header" onclick="toggleSeccion('grafica-contenido')">
                 <div class="seccion-titulo">
@@ -145,7 +147,7 @@
             </div>
         </section>
 
-        <!-- HISTORIAL -->
+        <!-- ========== HISTORIAL ========== -->
         <section class="seccion">
             <div class="seccion-header" onclick="toggleSeccion('historial-contenido')">
                 <div class="seccion-titulo">
@@ -178,7 +180,7 @@
             </div>
         </section>
 
-        <!-- ASISTENTE -->
+        <!-- ========== ASISTENTE ========== -->
         <section class="seccion-ayuda">
             <div class="seccion-header" onclick="toggleSeccion('ayuda-contenido')">
                 <div class="seccion-titulo">
@@ -208,60 +210,36 @@
 
     </div>
 
-    <!-- GUÍA INTERACTIVA -->
+    <!-- ========== GUÍA INTERACTIVA ========== -->
     <div class="guia-overlay" id="guiaOverlay">
-    <!-- GUÍA INTERACTIVA -->
-<div class="guia-overlay" id="guiaOverlay">
-    <div class="guia-card" id="guiaCard">
-        <div class="guia-superior">
-            <span class="guia-paso" id="guiaPaso">BIENVENIDO</span>
-            <button class="guia-cerrar" id="guiaCerrar">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-
-        <div class="guia-icono" id="guiaIcono">
-            <i class="fas fa-seedling"></i>
-        </div>
-
-        <h2 id="guiaTitulo">Bienvenido</h2>
-        <p id="guiaTexto"></p>
-        
-        <div class="guia-lista" id="guiaLista"></div>
-
-        <div class="guia-footer">
-            <div class="guia-progreso" id="guiaProgreso"></div>
-            <div class="guia-footer-botones">
-                <button class="guia-boton secundario" id="guiaAnterior" style="display:none;">
-                    <i class="fas fa-arrow-left"></i> Atrás
-                </button>
-                <button class="guia-boton" id="guiaSiguiente">
-                    Comenzar <i class="fas fa-arrow-right"></i>
-                </button>
-            </div>
-        </div>
-    </div>
-</div> 
         <div class="guia-card" id="guiaCard">
             <div class="guia-superior">
                 <span class="guia-paso" id="guiaPaso">BIENVENIDO</span>
-                <button class="guia-cerrar" id="guiaCerrar"><i class="fas fa-times"></i></button>
+                <button class="guia-cerrar" id="guiaCerrar">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
-            <div class="guia-icono" id="guiaIcono"><i class="fas fa-seedling"></i></div>
+            <div class="guia-icono" id="guiaIcono">
+                <i class="fas fa-seedling"></i>
+            </div>
             <h2 id="guiaTitulo">Bienvenido</h2>
             <p id="guiaTexto"></p>
             <div class="guia-lista" id="guiaLista"></div>
             <div class="guia-footer">
                 <div class="guia-progreso" id="guiaProgreso"></div>
-                <div>
-                    <button class="guia-boton secundario" id="guiaAnterior">Atrás</button>
-                    <button class="guia-boton" id="guiaSiguiente">Comenzar</button>
+                <div class="guia-footer-botones">
+                    <button class="guia-boton secundario" id="guiaAnterior" style="display:none;">
+                        <i class="fas fa-arrow-left"></i> Atrás
+                    </button>
+                    <button class="guia-boton" id="guiaSiguiente">
+                        Comenzar <i class="fas fa-arrow-right"></i>
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- SCRIPTS -->
+    <!-- ========== SCRIPTS ========== -->
     <script type="importmap">
         {
             "imports": {
