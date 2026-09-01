@@ -2,7 +2,7 @@
 // FIREBASE CONFIGURATION
 // ============================================================
 
-import { initializeApp } from "firebase/app";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { 
     getDatabase, 
     ref, 
@@ -10,8 +10,9 @@ import {
     orderByKey, 
     limitToLast,
     onValue,
-    set
-} from "firebase/database";
+    set,
+    get
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyDuMehgD-CrrSLW6SIz4OMg7LzDGbY9NTw",
@@ -23,11 +24,9 @@ const firebaseConfig = {
     appId: "1:553659066320:web:2fe4b64c723727c8b67bd5"
 };
 
-// Inicializar Firebase
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// Referencias a las rutas en Firebase
 const valorActualRef = ref(db, "Aeroponia-UTS/Valor_Actual");
 const historialRef = query(
     ref(db, "Aeroponia-UTS/Historial"),
@@ -36,12 +35,12 @@ const historialRef = query(
 );
 const etapaConfigRef = ref(db, "Aeroponia-UTS/Config/etapa");
 
-// Exportar todo lo necesario
 export {
     db,
     valorActualRef,
     historialRef,
     etapaConfigRef,
     set,
-    onValue
+    onValue,
+    get
 };
