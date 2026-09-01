@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Aeroponia UTS</title>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Estilos -->
+    <link rel="stylesheet" href="styles/main.css">
+
+    <!-- Favicon -->
+    <link rel="icon" href="assets/images/favicon.ico">
+</head>
+<body>
+
+    <div class="container">
+
+        <!-- HEADER -->
+        <header class="header">
+            <h1>
+                <img src="assets/images/logo.png" alt="Logo" class="logo">
+                Dashboard Aeroponia UTS
+                <span class="subtitulo">con soluciones prácticas</span>
+            </h1>
+            <div class="header-controls">
+                <div class="cultivo-selector-wrapper">
+                    <label for="selectorCultivo"><i class="fas fa-leaf"></i> Cultivo:</label>
+                    <select id="selectorCultivo" class="cultivo-selector">
+                        <option value="lechuga">🥬 Lechuga</option>
+                        <option value="fresa">🍓 Fresa</option>
+                        <option value="tomate">🍅 Tomate</option>
+                        <option value="cilantro">🌿 Cilantro</option>
+                        <option value="albahaca">🌱 Albahaca</option>
+                        <option value="espinaca">🥗 Espinaca</option>
+                    </select>
+                </div>
+                <button class="guia-ayuda-btn" id="btnGuia">
+                    <i class="fas fa-circle-question"></i> Guía
+                </button>
+                <span class="status-badge" id="statusBadge">
+                    <i class="fas fa-circle" id="statusIcon"></i>
+                    <span id="statusText">Conectando...</span>
+                </span>
+            </div>
+        </header>
+
+        <!-- OFFLINE BANNER -->
+        <div class="offline-banner" id="offlineBanner">
+            <div class="offline-banner-icon"><i class="fas fa-wifi-slash"></i></div>
+            <div class="offline-banner-content">
+                <h3>⚠️ SIN DATOS DEL ESP32</h3>
+                <p>El sistema sigue funcionando de forma autónoma.</p>
+                <span class="autonomo">🤖 MODO AUTÓNOMO ACTIVO</span>
+                <p>Última actualización: <span id="ultimaActualizacion">--</span></p>
+            </div>
+        </div>
+
+        <!-- PANEL DE CRECIMIENTO -->
+        <section class="panel-crecimiento" id="panelCrecimiento">
+            <div class="panel-crecimiento-titulo">
+                <i class="fas fa-chart-simple"></i> 📈 Progreso del Cultivo
+            </div>
+            <div class="panel-crecimiento-grid">
+                <div class="panel-etapa-actual" id="panelEtapaActual">
+                    <div class="panel-etapa-icono" id="etapaIcono">🌱</div>
+                    <div class="panel-etapa-nombre" id="etapaNombre">Germinación</div>
+                    <div class="panel-etapa-dia" id="etapaDia">Día 0</div>
+                    <div class="panel-etapa-desc" id="etapaDesc">Semilla hidratada</div>
+                </div>
+                <div class="panel-progreso">
+                    <div class="progreso-header">
+                        <span>Progreso</span>
+                        <span id="progresoPorcentaje">0%</span>
+                    </div>
+                    <div class="panel-progreso-barra">
+                        <div class="panel-progreso-barra-fill" id="progresoBarra"></div>
+                    </div>
+                    <div class="panel-progreso-stats">
+                        <span>📅 <strong id="diasTranscurridos">0</strong> días</span>
+                        <span>🎯 <strong id="diasTotales">38</strong> días</span>
+                    </div>
+                    <div class="panel-selector-etapa" id="selectorEtapas"></div>
+                    <div class="panel-acciones">
+                        <button class="btn-accion btn-aplicar" id="btnAplicar" disabled>
+                            <i class="fas fa-check"></i> Aplicar
+                        </button>
+                        <button class="btn-accion btn-cancelar" id="btnCancelar" disabled>
+                            <i class="fas fa-times"></i> Cancelar
+                        </button>
+                        <button class="btn-accion btn-dia0" id="btnDia0">
+                            <i class="fas fa-undo"></i> Día 0
+                        </button>
+                    </div>
+                    <div class="panel-fecha-input">
+                        <label for="fechaSiembraPanel"><i class="fas fa-calendar-day"></i> Inicio:</label>
+                        <input type="date" id="fechaSiembraPanel">
+                        <button class="btn-etapa" id="btnHoy">Hoy</button>
+                        <button class="btn-etapa" id="btnSemana">-7 días</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ALERTA GENERAL -->
+        <div class="alerta-box" id="alertaBox">
+            <i class="fas fa-spinner fa-spin"></i>
+            <span>Esperando datos...</span>
+        </div>
+
+        <!-- SENSORES -->
+        <section class="seccion" id="seccion-sensores">
+            <div class="seccion-header" onclick="toggleSeccion('sensores')">
+                <div class="seccion-titulo">
+                    <i class="fas fa-microchip"></i>
+                    <span>Sensores</span>
+                    <span class="contador">Toca uno para análisis</span>
+                </div>
+                <i class="fas fa-chevron-up flecha" id="flecha-sensores"></i>
+            </div>
+            <div class="seccion-contenido" id="sensores">
+                <div class="sensor-grid">
+                    <!-- Se genera dinámicamente desde sensores.js -->
+                </div>
+            </div>
+        </section>
+
+        <!-- GRÁFICA -->
+        <section class="seccion">
+            <div class="seccion-header" onclick="toggleSeccion('grafica-contenido')">
+                <div class="seccion-titulo">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Evolución de los sensores</span>
+                </div>
+                <i class="fas fa-chevron-up flecha" id="flecha-grafica-contenido"></i>
+            </div>
+            <div class="seccion-contenido" id="grafica-contenido">
+                <div class="chart-container" id="chartContainer">
+                    <canvas id="grafica"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- HISTORIAL -->
+        <section class="seccion">
+            <div class="seccion-header" onclick="toggleSeccion('historial-contenido')">
+                <div class="seccion-titulo">
+                    <i class="fas fa-clock-rotate-left"></i>
+                    <span>Historial</span>
+                    <span class="contador"><span id="contador-registros">0</span> registros</span>
+                </div>
+                <i class="fas fa-chevron-up flecha" id="flecha-historial-contenido"></i>
+            </div>
+            <div class="seccion-contenido" id="historial-contenido">
+                <div class="table-wrapper" id="tableWrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Tiempo</th>
+                                <th>pH</th>
+                                <th>Temp. Aire</th>
+                                <th>Temp. Agua</th>
+                                <th>Humedad</th>
+                                <th>Luz</th>
+                                <th>Bomba</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-body">
+                            <tr><td colspan="8" class="text-center">Cargando...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ASISTENTE -->
+        <section class="seccion-ayuda">
+            <div class="seccion-header" onclick="toggleSeccion('ayuda-contenido')">
+                <div class="seccion-titulo">
+                    <i class="fas fa-robot"></i>
+                    <span>Asistente del sistema</span>
+                    <span class="contador" id="estado-general">Analizando...</span>
+                </div>
+                <i class="fas fa-chevron-up flecha" id="flecha-ayuda-contenido"></i>
+            </div>
+            <div class="seccion-contenido" id="ayuda-contenido">
+                <div id="consejosContainer">
+                    <div class="text-center"><i class="fas fa-spinner fa-spin"></i> Analizando...</div>
+                </div>
+                <div class="chat-wrapper">
+                    <div class="chat-titulo">
+                        <i class="fas fa-comments"></i> Pregúntale al asistente
+                    </div>
+                    <div class="chat-mensajes" id="chatMensajes"></div>
+                    <div class="chat-chips" id="chatChips"></div>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <p><i class="fas fa-database"></i> Datos actualizados desde Firebase</p>
+        </footer>
+
+    </div>
+
+    <!-- GUÍA INTERACTIVA -->
+    <div class="guia-overlay" id="guiaOverlay">
+        <div class="guia-blur-zone" id="guiaBlurTop"></div>
+        <div class="guia-blur-zone" id="guiaBlurBottom"></div>
+        <div class="guia-blur-zone" id="guiaBlurLeft"></div>
+        <div class="guia-blur-zone" id="guiaBlurRight"></div>
+        <div class="guia-spotlight" id="guiaSpotlight"></div>
+        <div class="guia-card" id="guiaCard">
+            <div class="guia-superior">
+                <span class="guia-paso" id="guiaPaso">BIENVENIDO</span>
+                <button class="guia-cerrar" id="guiaCerrar"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="guia-icono" id="guiaIcono"><i class="fas fa-seedling"></i></div>
+            <h2 id="guiaTitulo">Bienvenido</h2>
+            <p id="guiaTexto"></p>
+            <div class="guia-lista" id="guiaLista"></div>
+            <div class="guia-footer">
+                <div class="guia-progreso" id="guiaProgreso"></div>
+                <div>
+                    <button class="guia-boton secundario" id="guiaAnterior">Atrás</button>
+                    <button class="guia-boton" id="guiaSiguiente">Comenzar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script type="importmap">
+        {
+            "imports": {
+                "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js": "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js",
+                "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js": "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js"
+            }
+        }
+    </script>
+
+    <script type="module">
+        // Importar todo desde app.js
+        import './scripts/app.js';
+    </script>
+
+</body>
+</html>
