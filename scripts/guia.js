@@ -1,126 +1,139 @@
 // ============================================================
-// GUÍA INTERACTIVA
+// GUÍA INTERACTIVA - VERSIÓN MEJORADA
 // ============================================================
 
 const guiaPasos = [
     {
         titulo: "Bienvenido al Dashboard",
-        texto: "Esta guía te enseña rápidamente cómo utilizar los controles principales del sistema.",
+        texto: "Esta guía te enseña rápidamente cómo utilizar los controles principales del sistema. Puedes cerrarla en cualquier momento.",
         icono: "fa-seedling",
         objetivo: null,
         lista: [
             ["fa-circle-info", "La guía no modifica ninguna configuración."],
-            ["fa-hand-pointer", "Pulsa «Siguiente» para conocer cada control."]
+            ["fa-hand-pointer", "Pulsa «Siguiente» para continuar."],
+            ["fa-xmark", "Pulsa la X o toca fuera para cerrar."]
         ]
     },
     {
-        titulo: "Selecciona el cultivo",
-        texto: "Usa este selector para elegir qué cultivo quieres consultar.",
+        titulo: "1. Selecciona el cultivo",
+        texto: "Aquí eliges qué cultivo estás monitoreando. Al cambiarlo, el sistema adapta los rangos y etapas automáticamente.",
         icono: "fa-leaf",
         objetivo: "selectorCultivo",
         lista: [
-            ["fa-list", "Elige entre varios cultivos."],
-            ["fa-circle-info", "El cambio es local."]
+            ["fa-list", "Elige entre Lechuga, Fresa, Tomate, Cilantro, Albahaca o Espinaca."],
+            ["fa-circle-info", "El cambio es local y no afecta la configuración del ESP32."]
         ]
     },
     {
-        titulo: "Progreso del cultivo",
-        texto: "Aquí puedes ver el día actual y la etapa del cultivo.",
+        titulo: "2. Progreso del cultivo",
+        texto: "Muestra el día actual, la etapa en la que se encuentra el cultivo y el porcentaje de avance del ciclo.",
         icono: "fa-chart-simple",
         objetivo: "panelCrecimiento",
         lista: [
-            ["fa-calendar-day", "La fecha de inicio determina el día."],
-            ["fa-seedling", "Las etapas cambian según los días."]
+            ["fa-calendar-day", "La fecha de inicio determina el día del cultivo."],
+            ["fa-seedling", "Las etapas cambian automáticamente según los días."],
+            ["fa-chart-line", "La barra muestra el progreso estimado del ciclo."]
         ]
     },
     {
-        titulo: "Botones de etapa",
-        texto: "Selecciona una etapa para PREVISUALIZAR cómo quedaría el cultivo.",
+        titulo: "3. Botones de etapa",
+        texto: "Selecciona una etapa para PREVISUALIZAR cómo quedaría el cultivo. Todavía no aplica el cambio.",
         icono: "fa-list-check",
         objetivo: "selectorEtapas",
         lista: [
-            ["fa-eye", "Al tocar una etapa, aparece como vista previa."],
-            ["fa-clock", "Se muestra un aviso de cambio pendiente."]
+            ["fa-eye", "Al tocar una etapa, se muestra como vista previa."],
+            ["fa-clock", "Aparece un aviso indicando el cambio pendiente."],
+            ["fa-triangle-exclamation", "Mientras sea vista previa, no se guarda el cambio."]
         ]
     },
     {
-        titulo: "Aplicar o cancelar",
-        texto: "«Aplicar cambio» confirma la nueva etapa; «Cancelar» elimina la vista previa.",
+        titulo: "4. Aplicar o cancelar",
+        texto: "Después de seleccionar una etapa, usa estos botones para confirmar o descartar la vista previa.",
         icono: "fa-check-double",
         objetivo: "panel-acciones",
         lista: [
-            ["fa-check", "APLICAR CAMBIO: confirma la etapa."],
-            ["fa-xmark", "CANCELAR: vuelve a la etapa actual."]
+            ["fa-check", "APLICAR CAMBIO: confirma la nueva etapa."],
+            ["fa-xmark", "CANCELAR: vuelve a la etapa actual."],
+            ["fa-circle-info", "Si no hay vista previa, los botones están desactivados."]
         ]
     },
     {
-        titulo: "Día 0 — Reiniciar cultivo",
-        texto: "Reinicia el conteo del cultivo al Día 0.",
+        titulo: "5. Día 0 — Reiniciar cultivo",
+        texto: "Reinicia el conteo del cultivo al Día 0. La fecha de inicio pasa a ser hoy.",
         icono: "fa-rotate-left",
         objetivo: "btnDia0",
         lista: [
-            ["fa-triangle-exclamation", "Te pedirá confirmación."],
-            ["fa-calendar-day", "La fecha de inicio pasa a ser hoy."]
+            ["fa-triangle-exclamation", "Te pedirá confirmación antes de reiniciar."],
+            ["fa-calendar-day", "La fecha de inicio pasa a ser hoy."],
+            ["fa-seedling", "El progreso vuelve a comenzar desde Germinación."]
         ]
     },
     {
-        titulo: "Fecha de inicio",
-        texto: "Establece manualmente desde qué fecha comenzó el cultivo.",
+        titulo: "6. Fecha de inicio",
+        texto: "Puedes establecer manualmente desde qué fecha comenzó el cultivo. El día y la etapa se recalcularán automáticamente.",
         icono: "fa-calendar-days",
         objetivo: "panel-fecha-input",
         lista: [
-            ["fa-calendar-check", "HOY: fecha actual."],
-            ["fa-clock", "-7 DÍAS: una semana atrás."]
+            ["fa-calendar-check", "HOY: establece la fecha actual."],
+            ["fa-clock", "-7 DÍAS: coloca el inicio una semana atrás."],
+            ["fa-keyboard", "También puedes seleccionar una fecha manualmente."]
         ]
     },
     {
-        titulo: "Sensores",
-        texto: "Toca cualquier tarjeta para abrir un análisis detallado.",
+        titulo: "7. Sensores",
+        texto: "Toca cualquier tarjeta para abrir un análisis detallado con el valor actual, rango recomendado, tendencia y soluciones prácticas.",
         icono: "fa-microchip",
         objetivo: "sensores",
         lista: [
-            ["fa-flask", "pH"],
-            ["fa-temperature-half", "Temperaturas"],
-            ["fa-droplet", "Humedad"],
-            ["fa-sun", "Luz"],
-            ["fa-power-off", "Bomba"]
+            ["fa-flask", "pH: mide la acidez de la solución."],
+            ["fa-temperature-half", "Temperatura ambiente y del agua."],
+            ["fa-droplet", "Humedad del ambiente."],
+            ["fa-sun", "Luz: intensidad lumínica."],
+            ["fa-power-off", "Estado de la bomba de agua."]
         ]
     },
     {
-        titulo: "Gráfica e historial",
-        texto: "Revisa cómo han cambiado los sensores y consulta las mediciones.",
+        titulo: "8. Gráfica e historial",
+        texto: "Revisa cómo han cambiado los sensores a lo largo del tiempo y consulta todas las mediciones almacenadas.",
         icono: "fa-chart-line",
         objetivo: "grafica-contenido",
         lista: [
-            ["fa-chart-line", "Evolución de los sensores."],
-            ["fa-clock-rotate-left", "Historial de registros."]
+            ["fa-chart-line", "Evolución de los sensores en el tiempo."],
+            ["fa-clock-rotate-left", "Historial completo de registros."],
+            ["fa-chevron-down", "Toca los encabezados para abrir o cerrar cada sección."]
         ]
     },
     {
-        titulo: "Asistente del sistema",
-        texto: "El asistente analiza los valores y te ofrece recomendaciones.",
+        titulo: "9. Asistente del sistema",
+        texto: "El asistente analiza los valores y te ofrece recomendaciones prácticas. También puedes usar las preguntas rápidas.",
         icono: "fa-robot",
         objetivo: "ayuda-contenido",
         lista: [
-            ["fa-comments", "Usa las preguntas rápidas."],
-            ["fa-wrench", "«Todas las soluciones» reúne acciones."]
+            ["fa-comments", "Usa las preguntas rápidas para consultar un sensor."],
+            ["fa-wrench", "«Todas las soluciones» reúne todas las acciones recomendadas."],
+            ["fa-rotate", "«Reiniciar» reinicia la conversación, no el cultivo."]
         ]
     },
     {
         titulo: "¡Listo!",
-        texto: "Ya conoces los controles principales. Pulsa «Guía» en cualquier momento para volver a verla.",
+        texto: "Ya conoces todos los controles principales. Puedes volver a abrir esta guía en cualquier momento pulsando el botón «Guía» en la parte superior.",
         icono: "fa-circle-check",
         objetivo: null,
         lista: [
-            ["fa-seedling", "Selecciona tu cultivo."],
+            ["fa-seedling", "Selecciona tu cultivo favorito."],
             ["fa-calendar", "Comprueba la fecha y etapa."],
-            ["fa-microchip", "Revisa los sensores."]
+            ["fa-microchip", "Revisa los sensores regularmente."],
+            ["fa-robot", "Consulta al asistente cuando necesites ayuda."]
         ]
     }
 ];
 
 let guiaActiva = false;
 let guiaIndice = 0;
+
+// ============================================================
+// FUNCIONES MEJORADAS
+// ============================================================
 
 function limpiarObjetivoGuia() {
     document.querySelectorAll(".guia-target").forEach(el => el.classList.remove("guia-target"));
@@ -139,18 +152,21 @@ function actualizarBlurGuia(rect) {
     const w = window.innerWidth;
     const h = window.innerHeight;
 
+    // Si no hay rect, ocultar todo el blur
     if (!rect) {
-        zonas.top.style.cssText = `left:0;top:0;width:${w}px;height:${h}px;`;
+        zonas.top.style.cssText = `display:none;`;
         zonas.bottom.style.cssText = "display:none;";
         zonas.left.style.cssText = "display:none;";
         zonas.right.style.cssText = "display:none;";
         return;
     }
 
-    const l = Math.max(0, Math.min(w, rect.left));
-    const t = Math.max(0, Math.min(h, rect.top));
-    const r = Math.max(0, Math.min(w, rect.right));
-    const b = Math.max(0, Math.min(h, rect.bottom));
+    // Hacer el blur más sutil para que se vean los datos
+    const pad = 20;
+    const l = Math.max(0, Math.min(w, rect.left - pad));
+    const t = Math.max(0, Math.min(h, rect.top - pad));
+    const r = Math.min(w, rect.right + pad);
+    const b = Math.min(h, rect.bottom + pad);
 
     zonas.top.style.cssText = `display:block;left:0;top:0;width:${w}px;height:${t}px;`;
     zonas.bottom.style.cssText = `display:block;left:0;top:${b}px;width:${w}px;height:${Math.max(0, h-b)}px;`;
@@ -174,33 +190,47 @@ function posicionarGuiaCard(rect) {
     const card = document.getElementById("guiaCard");
     if (!card) return;
 
-    const margin = 18;
-    const ancho = Math.min(520, window.innerWidth - 32);
-    const alto = Math.min(card.offsetHeight || 430, window.innerHeight - 32);
+    const margin = 12;
+    const ancho = Math.min(480, window.innerWidth - 24);
+    const alto = Math.min(card.scrollHeight || 400, window.innerHeight - 24);
 
     card.style.width = `${ancho}px`;
+    card.style.maxHeight = `${window.innerHeight - 24}px`;
 
     if (!rect) {
+        // Centrar en la pantalla
         card.style.left = `${(window.innerWidth - ancho) / 2}px`;
-        card.style.top = `${Math.max(16, (window.innerHeight - alto) / 2)}px`;
+        card.style.top = `${Math.max(12, (window.innerHeight - alto) / 2)}px`;
         return;
     }
 
-    let left = rect.left;
-    let top = rect.bottom + 18;
+    // Posicionar la tarjeta al lado del objetivo
+    let left = rect.left + rect.width + 16;
+    let top = rect.top;
 
-    if (top + alto > window.innerHeight - margin) {
-        top = rect.top - alto - 18;
+    // Si no cabe a la derecha, poner a la izquierda
+    if (left + ancho > window.innerWidth - margin) {
+        left = rect.left - ancho - 16;
     }
 
+    // Si no cabe a la izquierda, poner debajo
+    if (left < margin) {
+        left = Math.max(margin, (window.innerWidth - ancho) / 2);
+        top = rect.bottom + 12;
+    }
+
+    // Ajustar verticalmente
+    if (top + alto > window.innerHeight - margin) {
+        top = rect.top - alto - 12;
+    }
     if (top < margin) {
         top = Math.max(margin, (window.innerHeight - alto) / 2);
     }
 
+    // Asegurar que no se salga de la pantalla
     if (left + ancho > window.innerWidth - margin) {
         left = window.innerWidth - ancho - margin;
     }
-
     if (left < margin) left = margin;
 
     card.style.left = `${left}px`;
@@ -251,9 +281,12 @@ function mostrarPasoGuia(indice) {
 
     overlay.classList.add("visible");
     document.body.classList.add("guia-activa");
+
+    // Inicialmente sin blur
     actualizarBlurGuia(null);
 
-    requestAnimationFrame(() => {
+    // Pequeño retraso para que se renderice
+    setTimeout(() => {
         const objetivoId = paso.objetivo;
         let objetivo = null;
 
@@ -276,21 +309,25 @@ function mostrarPasoGuia(indice) {
 
             setTimeout(() => {
                 const r = objetivo.getBoundingClientRect();
-                const pad = 7;
+                const pad = 6;
+                
+                // Spotlight más sutil
                 spotlight.style.left = `${Math.max(0, r.left - pad)}px`;
                 spotlight.style.top = `${Math.max(0, r.top - pad)}px`;
                 spotlight.style.width = `${Math.min(window.innerWidth, r.width + pad * 2)}px`;
                 spotlight.style.height = `${Math.min(window.innerHeight, r.height + pad * 2)}px`;
+                
+                // Blur más suave (menos opaco)
                 actualizarBlurGuia(r);
                 spotlight.classList.add("visible");
                 posicionarGuiaCard(r);
-            }, 180);
+            }, 200);
         } else {
             spotlight.classList.remove("visible");
             actualizarBlurGuia(null);
             posicionarGuiaCard(null);
         }
-    });
+    }, 150);
 }
 
 function abrirGuia(desdeInicio = false) {
@@ -298,34 +335,74 @@ function abrirGuia(desdeInicio = false) {
     mostrarPasoGuia(desdeInicio ? 0 : 0);
 }
 
-// Inicializar eventos
+// ============================================================
+// INICIALIZACIÓN DE EVENTOS
+// ============================================================
+
 document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById("btnGuia").addEventListener("click", () => abrirGuia());
-    document.getElementById("guiaCerrar").addEventListener("click", cerrarGuia);
-    document.getElementById("guiaAnterior").addEventListener("click", () => {
-        if (guiaIndice > 0) mostrarPasoGuia(guiaIndice - 1);
-    });
-    document.getElementById("guiaSiguiente").addEventListener("click", () => {
-        if (guiaIndice >= guiaPasos.length - 1) {
+    const btnGuia = document.getElementById("btnGuia");
+    const btnCerrar = document.getElementById("guiaCerrar");
+    const btnAnterior = document.getElementById("guiaAnterior");
+    const btnSiguiente = document.getElementById("guiaSiguiente");
+    const overlay = document.getElementById("guiaOverlay");
+
+    if (btnGuia) {
+        btnGuia.addEventListener("click", (e) => {
+            e.preventDefault();
+            abrirGuia(true);
+        });
+    }
+
+    if (btnCerrar) {
+        btnCerrar.addEventListener("click", cerrarGuia);
+    }
+
+    if (btnAnterior) {
+        btnAnterior.addEventListener("click", () => {
+            if (guiaIndice > 0) mostrarPasoGuia(guiaIndice - 1);
+        });
+    }
+
+    if (btnSiguiente) {
+        btnSiguiente.addEventListener("click", () => {
+            if (guiaIndice >= guiaPasos.length - 1) {
+                cerrarGuia();
+            } else {
+                mostrarPasoGuia(guiaIndice + 1);
+            }
+        });
+    }
+
+    if (overlay) {
+        overlay.addEventListener("click", (e) => {
+            if (e.target.id === "guiaOverlay" || e.target.closest(".guia-blur-zone")) {
+                cerrarGuia();
+            }
+        });
+    }
+
+    // Cerrar con tecla ESC
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && guiaActiva) {
             cerrarGuia();
-        } else {
-            mostrarPasoGuia(guiaIndice + 1);
         }
     });
-    document.getElementById("guiaOverlay").addEventListener("click", (e) => {
-        if (e.target.id === "guiaOverlay") cerrarGuia();
-    });
 
+    // Redimensionar
+    let resizeTimeout;
     window.addEventListener("resize", () => {
-        if (guiaActiva) mostrarPasoGuia(guiaIndice);
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+            if (guiaActiva) mostrarPasoGuia(guiaIndice);
+        }, 200);
     });
 
-    // Mostrar guía si es primera visita
+    // Mostrar guía si es primera visita (solo si no se ha visto)
     if (!localStorage.getItem("guiaAeroponiaVista")) {
-        setTimeout(() => abrirGuia(true), 650);
+        setTimeout(() => abrirGuia(true), 800);
     }
 });
 
-// Exponer globalmente
+// Exponer globalmente para uso en HTML
 window.abrirGuia = abrirGuia;
 window.cerrarGuia = cerrarGuia;
