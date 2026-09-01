@@ -13,6 +13,17 @@ let isOffline = false;
 let lastUpdateTime = null;
 let previewEtapa = null;
 
+// ============================================================
+// EXPORTAR CONFIGURACIÓN (¡IMPORTANTE!)
+// ============================================================
+
+// Re-exportar configuracion para que esté disponible en otros módulos
+export { configuracion };
+
+// ============================================================
+// FUNCIONES DE CULTIVO
+// ============================================================
+
 export function setCultivo(valor) {
     cultivoSeleccionado = valor;
 }
@@ -24,6 +35,10 @@ export function getCultivoSeleccionado() {
 export function getCultivoInfo() {
     return cultivosDB[cultivoSeleccionado] || cultivosDB.lechuga;
 }
+
+// ============================================================
+// FUNCIONES DE DATOS
+// ============================================================
 
 export function setDatosActuales(datos) {
     datosActuales = datos;
@@ -41,6 +56,10 @@ export function getRegistrosHistorial() {
     return registrosHistorial;
 }
 
+// ============================================================
+// FUNCIONES DE FECHA
+// ============================================================
+
 export function setFechaInicio(fecha) {
     fechaInicio = fecha;
 }
@@ -48,6 +67,20 @@ export function setFechaInicio(fecha) {
 export function getFechaInicio() {
     return fechaInicio;
 }
+
+export function obtenerDiasTranscurridos() {
+    if (fechaInicio) {
+        const ahora = new Date();
+        const inicio = new Date(fechaInicio);
+        const diff = ahora - inicio;
+        return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
+    }
+    return 0;
+}
+
+// ============================================================
+// FUNCIONES DE ESTADO
+// ============================================================
 
 export function setOffline(estado) {
     isOffline = estado;
@@ -73,15 +106,9 @@ export function getPreviewEtapa() {
     return previewEtapa;
 }
 
-export function obtenerDiasTranscurridos() {
-    if (fechaInicio) {
-        const ahora = new Date();
-        const inicio = new Date(fechaInicio);
-        const diff = ahora - inicio;
-        return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
-    }
-    return 0;
-}
+// ============================================================
+// FUNCIONES DE ETAPAS Y RANGOS
+// ============================================================
 
 export function getRangoPorEtapa(sensor, dias) {
     const cultivo = getCultivoInfo();
@@ -125,6 +152,10 @@ export function getEtapaActual(dias) {
     }
     return etapa;
 }
+
+// ============================================================
+// FUNCIONES DE SENSORES
+// ============================================================
 
 export function obtenerEstado(sensor, valor) {
     const dias = obtenerDiasTranscurridos();
