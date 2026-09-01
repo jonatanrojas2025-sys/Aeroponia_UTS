@@ -20,10 +20,12 @@
 
     <div class="container">
 
-        <!-- ========== HEADER ========== -->
+        <!-- =========================================================
+             HEADER
+        ========================================================= -->
         <header class="header">
             <h1>
-                <img src="assets/images/logo-uts.png" alt="Logo UTS" class="logo" onerror="this.style.display='none'" />
+                <img src="assets/images/logo-uts.png" alt="Logo UTS" class="logo" />
                 Dashboard Aeroponia UTS
                 <span class="subtitulo">con soluciones prácticas</span>
             </h1>
@@ -46,13 +48,17 @@
             </div>
         </header>
 
-        <!-- ========== ALERTA GENERAL ========== -->
+        <!-- =========================================================
+             ALERTA GENERAL
+        ========================================================= -->
         <div class="alerta-box" id="alertaBox">
             <i class="fas fa-spinner fa-spin"></i>
             <span>Esperando datos del sistema...</span>
         </div>
 
-        <!-- ========== PANEL DE CRECIMIENTO ========== -->
+        <!-- =========================================================
+             PANEL DE CRECIMIENTO
+        ========================================================= -->
         <section class="panel-crecimiento" id="panelCrecimiento">
             <div class="panel-crecimiento-titulo">
                 <i class="fas fa-chart-simple"></i> 📈 Progreso del Cultivo
@@ -80,7 +86,9 @@
             </div>
         </section>
 
-        <!-- ========== SENSORES ========== -->
+        <!-- =========================================================
+             SENSORES - (CUADROS CON LUCES EN LOS COSTADOS)
+        ========================================================= -->
         <section class="seccion" id="seccion-sensores">
             <div class="seccion-header">
                 <div class="seccion-titulo">
@@ -91,12 +99,14 @@
             </div>
             <div class="seccion-contenido" id="sensores">
                 <div class="sensor-grid" id="sensorGrid">
-                    <!-- Se genera dinámicamente desde app.js -->
+                    <!-- Se genera desde JavaScript -->
                 </div>
             </div>
         </section>
 
-        <!-- ========== GRÁFICA ========== -->
+        <!-- =========================================================
+             GRÁFICA
+        ========================================================= -->
         <section class="seccion">
             <div class="seccion-header">
                 <div class="seccion-titulo">
@@ -111,7 +121,9 @@
             </div>
         </section>
 
-        <!-- ========== HISTORIAL ========== -->
+        <!-- =========================================================
+             HISTORIAL
+        ========================================================= -->
         <section class="seccion">
             <div class="seccion-header">
                 <div class="seccion-titulo">
@@ -143,14 +155,40 @@
             </div>
         </section>
 
+        <!-- =========================================================
+             ASISTENTE
+        ========================================================= -->
+        <section class="seccion-ayuda">
+            <div class="seccion-header">
+                <div class="seccion-titulo">
+                    <i class="fas fa-robot"></i>
+                    <span>Asistente del sistema</span>
+                    <span class="contador" id="estado-general">Analizando...</span>
+                </div>
+            </div>
+            <div class="seccion-contenido" id="ayuda-contenido">
+                <div id="consejosContainer">
+                    <div class="text-center"><i class="fas fa-spinner fa-spin"></i> Analizando...</div>
+                </div>
+                <div class="chat-wrapper">
+                    <div class="chat-titulo">
+                        <i class="fas fa-comments"></i> Pregúntale al asistente
+                    </div>
+                    <div class="chat-mensajes" id="chatMensajes"></div>
+                    <div class="chat-chips" id="chatChips"></div>
+                </div>
+            </div>
+        </section>
+
         <footer>
             <p><i class="fas fa-database"></i> Datos actualizados desde Firebase</p>
         </footer>
 
     </div>
 
-    <!-- ========== SCRIPTS ========== -->
-    <!-- Usamos URLs completas para Firebase (más confiable) -->
+    <!-- =========================================================
+         SCRIPTS
+    ========================================================= -->
     <script type="importmap">
         {
             "imports": {

@@ -2,7 +2,7 @@
 // FIREBASE CONFIGURATION
 // ============================================================
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { initializeApp } from "firebase/app";
 import { 
     getDatabase, 
     ref, 
@@ -10,9 +10,8 @@ import {
     orderByKey, 
     limitToLast,
     onValue,
-    set,
-    get
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    set
+} from "firebase/database";
 
 const firebaseConfig = {
     apiKey: "AIzaSyDuMehgD-CrrSLW6SIz4OMg7LzDGbY9NTw",
@@ -41,6 +40,5 @@ export {
     historialRef,
     etapaConfigRef,
     set,
-    onValue,
-    get
+    onValue
 };
