@@ -1401,6 +1401,17 @@
             justify-content: space-between;
             gap: 12px;
             margin-bottom: 18px;
+            cursor: grab;
+            touch-action: none;
+        }
+
+        .guia-superior:active {
+            cursor: grabbing;
+        }
+
+        .guia-card.arrastrando {
+            transition: none;
+            user-select: none;
         }
 
         .guia-paso {

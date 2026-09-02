@@ -2397,31 +2397,85 @@
             localStorage.setItem("guiaAeroponiaVista", "1");
         }
 
-        // La tarjeta de la guía queda en una posición FIJA (no salta según
-        // el botón que se está resaltando). En escritorio se centra en la
-        // pantalla; en móvil se ancla abajo como una hoja fija, siempre
-        // visible y fácil de leer. Solo el "spotlight" (resplandor) se
-        // mueve para señalar el elemento correspondiente.
-        function posicionarGuiaCard() {
+        // Coloca la tarjeta de la guía SIN TAPAR el elemento resaltado.
+        // Escritorio: la pega al lado del elemento (abajo → arriba →
+        // derecha → izquierda, la primera que tenga espacio libre).
+        // Móvil: vive como una hoja fija abajo, pero se limita a menos
+        // de la mitad de la pantalla para dejar ver lo que se explica.
+        function posicionarGuiaCard(rect) {
             const card = document.getElementById("guiaCard");
             if (!card) return;
 
             const margin = 16;
             const esMovil = window.innerWidth <= 640;
-            const ancho = Math.min(520, window.innerWidth - margin * 2);
-
+            const ancho = Math.min(esMovil ? window.innerWidth : 480, window.innerWidth - margin * 2);
             card.style.width = `${ancho}px`;
-            card.style.left = `${(window.innerWidth - ancho) / 2}px`;
 
             if (esMovil) {
+                card.style.left = `${(window.innerWidth - ancho) / 2}px`;
                 card.style.top = "auto";
                 card.style.bottom = `${margin}px`;
-                card.style.maxHeight = `${Math.min(window.innerHeight * 0.72, 560)}px`;
-            } else {
-                const alto = Math.min(card.offsetHeight || 430, window.innerHeight - margin * 2);
-                card.style.bottom = "auto";
-                card.style.top = `${Math.max(margin, (window.innerHeight - alto) / 2)}px`;
+                card.style.maxHeight = `${Math.min(window.innerHeight * 0.46, 380)}px`;
+                return;
             }
+
+            const alto = Math.min(card.offsetHeight || 380, window.innerHeight - margin * 2);
+            const clamp = (v, min, max) => Math.min(Math.max(v, min), Math.max(min, max));
+
+            if (!rect) {
+                card.style.left = `${(window.innerWidth - ancho) / 2}px`;
+                card.style.top = `${Math.max(margin, (window.innerHeight - alto) / 2)}px`;
+                card.style.bottom = "auto";
+                return;
+            }
+
+            const espacioAbajo = window.innerHeight - rect.bottom - margin;
+            const espacioArriba = rect.top - margin;
+            const espacioDerecha = window.innerWidth - rect.right - margin;
+            const espacioIzquierda = rect.left - margin;
+
+            let left, top;
+
+            if (espacioAbajo >= alto) {
+                top = rect.bottom + margin;
+                left = clamp(rect.left, margin, window.innerWidth - ancho - margin);
+            } else if (espacioArriba >= alto) {
+                top = rect.top - alto - margin;
+                left = clamp(rect.left, margin, window.innerWidth - ancho - margin);
+            } else if (espacioDerecha >= ancho) {
+                left = rect.right + margin;
+                top = clamp(rect.top, margin, window.innerHeight - alto - margin);
+            } else if (espacioIzquierda >= ancho) {
+                left = rect.left - ancho - margin;
+                top = clamp(rect.top, margin, window.innerHeight - alto - margin);
+            } else {
+                // El objetivo es tan grande que no cabe sin tocarlo:
+                // la mandamos al lado con más espacio libre disponible.
+                const opciones = [
+                    { lado: "abajo", espacio: espacioAbajo },
+                    { lado: "arriba", espacio: espacioArriba },
+                    { lado: "derecha", espacio: espacioDerecha },
+                    { lado: "izquierda", espacio: espacioIzquierda }
+                ].sort((a, b) => b.espacio - a.espacio)[0];
+
+                if (opciones.lado === "abajo") {
+                    top = window.innerHeight - alto - margin;
+                    left = clamp(rect.left, margin, window.innerWidth - ancho - margin);
+                } else if (opciones.lado === "arriba") {
+                    top = margin;
+                    left = clamp(rect.left, margin, window.innerWidth - ancho - margin);
+                } else if (opciones.lado === "derecha") {
+                    left = window.innerWidth - ancho - margin;
+                    top = clamp(rect.top, margin, window.innerHeight - alto - margin);
+                } else {
+                    left = margin;
+                    top = clamp(rect.top, margin, window.innerHeight - alto - margin);
+                }
+            }
+
+            card.style.left = `${left}px`;
+            card.style.top = `${top}px`;
+            card.style.bottom = "auto";
         }
 
         function mostrarPasoGuia(indice) {
@@ -2471,7 +2525,7 @@
             card.classList.add("visible");
             document.body.classList.add("guia-activa");
             actualizarBlurGuia(null);
-            posicionarGuiaCard();
+            posicionarGuiaCard(null);
 
             requestAnimationFrame(() => {
                 const objetivoId = paso.objetivo;
@@ -2492,21 +2546,41 @@
 
                 if (objetivo) {
                     objetivo.classList.add("guia-target");
-                    objetivo.scrollIntoView({ behavior: "smooth", block: "center" });
+                    const esMovil = window.innerWidth <= 640;
+                    objetivo.scrollIntoView({ behavior: "smooth", block: esMovil ? "start" : "center" });
 
                     setTimeout(() => {
-                        const r = objetivo.getBoundingClientRect();
-                        const pad = 7;
-                        spotlight.style.left = `${Math.max(0, r.left - pad)}px`;
-                        spotlight.style.top = `${Math.max(0, r.top - pad)}px`;
-                        spotlight.style.width = `${Math.min(window.innerWidth, r.width + pad * 2)}px`;
-                        spotlight.style.height = `${Math.min(window.innerHeight, r.height + pad * 2)}px`;
-                        actualizarBlurGuia(r);
-                        spotlight.classList.add("visible");
+                        const finalizarSpotlight = () => {
+                            const r = objetivo.getBoundingClientRect();
+                            const pad = 7;
+                            spotlight.style.left = `${Math.max(0, r.left - pad)}px`;
+                            spotlight.style.top = `${Math.max(0, r.top - pad)}px`;
+                            spotlight.style.width = `${Math.min(window.innerWidth, r.width + pad * 2)}px`;
+                            spotlight.style.height = `${Math.min(window.innerHeight, r.height + pad * 2)}px`;
+                            actualizarBlurGuia(r);
+                            spotlight.classList.add("visible");
+                            posicionarGuiaCard(r);
+                        };
+
+                        // En móvil, si lo resaltado queda tapado por la
+                        // hoja fija de abajo, hacemos scroll extra antes
+                        // de fijar el spotlight y la tarjeta.
+                        if (window.innerWidth <= 640) {
+                            const limiteVisible = window.innerHeight * 0.5;
+                            const r = objetivo.getBoundingClientRect();
+                            if (r.bottom > limiteVisible) {
+                                window.scrollBy({ top: r.bottom - limiteVisible, behavior: "smooth" });
+                                setTimeout(finalizarSpotlight, 220);
+                                return;
+                            }
+                        }
+
+                        finalizarSpotlight();
                     }, 180);
                 } else {
                     spotlight.classList.remove("visible");
                     actualizarBlurGuia(null);
+                    posicionarGuiaCard(null);
                 }
             });
         }
@@ -2539,6 +2613,50 @@
         window.addEventListener("resize", () => {
             if (guiaActiva) mostrarPasoGuia(guiaIndice);
         });
+
+        // ---- Arrastre manual de la tarjeta de la guía ----
+        // Por si en algún paso puntual sigue estorbando algo, el usuario
+        // puede tomarla del encabezado (icono de rejilla) y moverla.
+        (function habilitarArrastreGuia() {
+            const card = document.getElementById("guiaCard");
+            const agarre = document.getElementById("guiaAgarre");
+            if (!card || !agarre) return;
+
+            let arrastrando = false;
+            let offsetX = 0;
+            let offsetY = 0;
+
+            agarre.addEventListener("pointerdown", (e) => {
+                if (e.target.closest("#guiaCerrar")) return;
+                arrastrando = true;
+                const r = card.getBoundingClientRect();
+                offsetX = e.clientX - r.left;
+                offsetY = e.clientY - r.top;
+                card.style.bottom = "auto";
+                card.classList.add("arrastrando");
+                agarre.setPointerCapture(e.pointerId);
+            });
+
+            agarre.addEventListener("pointermove", (e) => {
+                if (!arrastrando) return;
+                const margin = 8;
+                const maxLeft = Math.max(margin, window.innerWidth - card.offsetWidth - margin);
+                const maxTop = Math.max(margin, window.innerHeight - card.offsetHeight - margin);
+                const left = Math.min(Math.max(margin, e.clientX - offsetX), maxLeft);
+                const top = Math.min(Math.max(margin, e.clientY - offsetY), maxTop);
+                card.style.left = `${left}px`;
+                card.style.top = `${top}px`;
+            });
+
+            function soltarArrastre() {
+                if (!arrastrando) return;
+                arrastrando = false;
+                card.classList.remove("arrastrando");
+            }
+            agarre.addEventListener("pointerup", soltarArrastre);
+            agarre.addEventListener("pointercancel", soltarArrastre);
+        })();
+
 
         // =========================================================
         // 27. SECCIONES CONTRAÍBLES
