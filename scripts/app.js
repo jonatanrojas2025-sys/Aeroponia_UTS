@@ -133,6 +133,15 @@ const DATA_TIMEOUT_MS = 30000;
 let chatIniciado = false;
 let fechaInicio = null;
 
+// ===== FUNCIONES DE ACCESO A isOffline =====
+function getOffline() {
+    return isOffline;
+}
+
+function setOffline(valor) {
+    isOffline = valor;
+}
+
 // ============================================================
 // 4. FUNCIONES DE UTILIDAD
 // ============================================================
@@ -649,7 +658,7 @@ function actualizarEstadoGeneral() {
 // ============================================================
 
 function actualizarEstadoOffline(offline) {
-    isOffline = offline;
+    setOffline(offline);
     const badge = document.getElementById("statusBadge");
     const text = document.getElementById("statusText");
     const icon = document.getElementById("statusIcon");
@@ -713,7 +722,7 @@ function actualizarAsistente() {
     const dias = obtenerDiasTranscurridos();
     const etapaActual = getEtapaActual(dias);
     const offline = getOffline();
-    const lastUpdate = getLastUpdate();
+    const lastUpdate = lastUpdateTime;
 
     if (offline) {
         if (estadoGeneral) { estadoGeneral.innerHTML = `📡 SIN DATOS | ${totalRegistros} reg.`; estadoGeneral.style.color = "#ef4444"; }
@@ -859,7 +868,7 @@ function iniciarChat() {
     const dias = obtenerDiasTranscurridos();
     const etapaActual = getEtapaActual(dias);
     const offline = getOffline();
-    const lastUpdate = getLastUpdate();
+    const lastUpdate = lastUpdateTime;
 
     let mensajeInicial =
         `🌱 ¡Hola! Soy tu asistente de ${cultivo.nombre}.\n\n` +
@@ -963,7 +972,7 @@ window.preguntar = function(id) {
     const dias = obtenerDiasTranscurridos();
     const etapaActual = getEtapaActual(dias);
     const offline = getOffline();
-    const lastUpdate = getLastUpdate();
+    const lastUpdate = lastUpdateTime;
 
     // ===== MODO OFFLINE =====
     if (offline) {
