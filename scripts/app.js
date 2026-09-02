@@ -1,5 +1,5 @@
 // ============================================================
-// APP - VERSIÓN LIMPIA Y FUNCIONAL
+// APP - VERSIÓN CORREGIDA (BADGE + TEMP AGUA)
 // ============================================================
 
 import { valorActualRef, historialRef, onValue } from './firebase-config.js';
@@ -131,6 +131,7 @@ let lastUpdateTime = null;
 let dataTimeout = null;
 const DATA_TIMEOUT_MS = 30000;
 let chatIniciado = false;
+let primerDatoRecibido = false;
 
 // ============================================================
 // 4. FUNCIONES DE UTILIDAD
@@ -165,17 +166,26 @@ function getEtapaActual(dias) {
 }
 
 function obtenerEstado(sensor, valor) {
-    const dias = 0; // Simplificado
+    const dias = 0;
     const rango = getRangoPorEtapa(sensor, dias);
-    if (valor === null || isNaN(valor) || valor === -273.15) {
+    
+    // ===== DETECTAR SENSOR DEFECTUOSO (TEMP AGUA) =====
+    if (sensor === 'temp-agua' && valor === -273.15) {
+        return { estado: "danger", texto: "❌ Sensor defectuoso" };
+    }
+    
+    if (valor === null || isNaN(valor)) {
         return { estado: "warning", texto: "⚠️ Sin datos" };
     }
+    
     const { min, max } = rango;
+    
     if (sensor === 'luz') {
         if (valor < min) return { estado: "warning", texto: "🌑 Poca luz" };
         if (valor > max) return { estado: "danger", texto: "☀️ Exceso de luz" };
         return { estado: "ok", texto: "☀️ Buena luz" };
     }
+    
     if (valor >= min && valor <= max) return { estado: "ok", texto: "✅ Bueno" };
     const margen = (max - min) * 0.20;
     if (valor >= min - margen && valor <= max + margen) return { estado: "warning", texto: "⚠️ Regular" };
@@ -184,7 +194,7 @@ function obtenerEstado(sensor, valor) {
 
 function formato(valor, sensor) {
     const c = configuracion[sensor];
-    if (!Number.isFinite(valor) || valor === -273.15) return "--";
+    if (valor === null || !Number.isFinite(valor)) return "--";
     return valor.toFixed(c.decimales) + c.unidad;
 }
 
@@ -211,7 +221,7 @@ function renderizarSensores() {
         grid.appendChild(card);
     }
 
-    // Bomba (especial)
+    // Bomba
     const bombaCard = document.createElement('div');
     bombaCard.className = 'sensor-card';
     bombaCard.id = 'card-bomba';
@@ -236,7 +246,8 @@ function actualizarTarjeta(sensor, valor) {
     const card = document.getElementById(`card-${sensor}`);
     if (!elemento) return;
 
-    if (isOffline || !Number.isFinite(valor) || valor === -273.15) {
+    // ==== PERMITIR -273.15 PARA DETECTAR SENSOR DEFECTUOSO ====
+    if (isOffline || valor === null || !Number.isFinite(valor)) {
         card?.classList.remove("estado-ok", "estado-warning", "estado-danger", "estado-off");
         card?.classList.add("estado-offline");
         status.className = "sub sub-offline";
@@ -246,6 +257,17 @@ function actualizarTarjeta(sensor, valor) {
     }
 
     const resultado = obtenerEstado(sensor, valor);
+    
+    // ==== MOSTRAR -273.15 COMO "SENSOR DEFECTUOSO" ====
+    if (sensor === 'temp-agua' && valor === -273.15) {
+        elemento.innerHTML = "-273.15°C";
+        status.textContent = "❌ Sensor defectuoso";
+        status.className = "sub sub-danger";
+        card?.classList.remove("estado-ok", "estado-warning", "estado-danger", "estado-off", "estado-offline");
+        card?.classList.add("estado-danger");
+        return;
+    }
+    
     if (sensor === 'luz') {
         elemento.innerHTML = resultado.texto;
     } else {
@@ -288,7 +310,7 @@ function actualizarTarjetaBomba(valor) {
 
 function actualizarPanelCrecimiento() {
     const cultivo = getCultivoInfo();
-    const dias = 0; // Simplificado
+    const dias = 0;
     const etapaActual = getEtapaActual(dias);
     const porcentaje = 0;
 
@@ -333,11 +355,11 @@ function actualizarTabla() {
 
         html += `<tr>
             <td style="color:#64748b;font-size:12px;">${fecha}</td>
-            <td>${Number.isFinite(ph) && ph !== -273.15 ? ph.toFixed(2) : "--"}</td>
-            <td>${Number.isFinite(temp) && temp !== -273.15 ? temp.toFixed(1)+"°C" : "--"}</td>
-            <td>${Number.isFinite(tempAgua) && tempAgua !== -273.15 ? tempAgua.toFixed(1)+"°C" : "--"}</td>
-            <td>${Number.isFinite(hum) && hum !== -273.15 ? hum.toFixed(1)+"%" : "--"}</td>
-            <td>${Number.isFinite(luz) && luz !== -273.15 ? luz.toFixed(0)+" lux" : "--"}</td>
+            <td>${Number.isFinite(ph) ? ph.toFixed(2) : "--"}</td>
+            <td>${Number.isFinite(temp) ? temp.toFixed(1)+"°C" : "--"}</td>
+            <td>${Number.isFinite(tempAgua) ? tempAgua.toFixed(1)+"°C" : "--"}</td>
+            <td>${Number.isFinite(hum) ? hum.toFixed(1)+"%" : "--"}</td>
+            <td>${Number.isFinite(luz) ? luz.toFixed(0)+" lux" : "--"}</td>
             <td class="${bombaOn ? 'td-ok' : ''}">${bombaOn ? "🔴 ON" : "⚪ OFF"}</td>
             <td class="${estadoClase}">${estadoTexto}</td>
         </tr>`;
@@ -413,7 +435,7 @@ function actualizarEstadoGeneral() {
     let problemas = [], advertencias = [];
     for (const sensor in configuracion) {
         const valor = Number(datosActuales[configuracion[sensor].campo]);
-        if (!Number.isFinite(valor) || valor === -273.15) continue;
+        if (!Number.isFinite(valor)) continue;
         const estado = obtenerEstado(sensor, valor);
         if (estado.estado === "danger") problemas.push(configuracion[sensor].nombre);
         else if (estado.estado === "warning") advertencias.push(configuracion[sensor].nombre);
@@ -429,16 +451,29 @@ function actualizarEstadoGeneral() {
 }
 
 // ============================================================
-// 11. CONEXIÓN
+// 11. CONEXIÓN - CORREGIDO
 // ============================================================
 
 function actualizarEstadoOffline(offline) {
     isOffline = offline;
-    const badge = document.getElementById("statusBadge"), text = document.getElementById("statusText"), icon = document.getElementById("statusIcon");
-    if (offline) { badge.className = "status-badge offline"; text.textContent = '📡 Sin datos'; icon.className = 'fas fa-wifi-slash'; }
-    else { badge.className = "status-badge connected"; text.textContent = '✅ Conectado'; icon.className = 'fas fa-circle'; }
+    const badge = document.getElementById("statusBadge");
+    const text = document.getElementById("statusText");
+    const icon = document.getElementById("statusIcon");
+    
+    if (offline) {
+        badge.className = "status-badge offline";
+        text.textContent = '📡 Sin datos';
+        icon.className = 'fas fa-wifi-slash';
+    } else {
+        badge.className = "status-badge connected";
+        text.textContent = '✅ Conectado';
+        icon.className = 'fas fa-circle';
+    }
+    
     if (datosActuales) {
-        for (const sensor in configuracion) actualizarTarjeta(sensor, Number(datosActuales[configuracion[sensor].campo]));
+        for (const sensor in configuracion) {
+            actualizarTarjeta(sensor, Number(datosActuales[configuracion[sensor].campo]));
+        }
         actualizarTarjetaBomba(datosActuales.bomba);
     }
     actualizarPanelCrecimiento();
@@ -447,11 +482,13 @@ function actualizarEstadoOffline(offline) {
 
 function reiniciarTimeout() {
     if (dataTimeout) clearTimeout(dataTimeout);
-    dataTimeout = setTimeout(() => actualizarEstadoOffline(true), DATA_TIMEOUT_MS);
+    dataTimeout = setTimeout(() => {
+        actualizarEstadoOffline(true);
+    }, DATA_TIMEOUT_MS);
 }
 
 // ============================================================
-// 12. CHAT (SIMPLIFICADO)
+// 12. CHAT
 // ============================================================
 
 const preguntasChip = [
@@ -516,7 +553,7 @@ window.preguntar = function(id) {
         let msg = `📊 <strong>RESUMEN</strong>\n\n`;
         for (const sensor in configuracion) {
             const valor = Number(datos[configuracion[sensor].campo]);
-            if (!Number.isFinite(valor) || valor === -273.15) continue;
+            if (!Number.isFinite(valor)) continue;
             const estado = obtenerEstado(sensor, valor);
             msg += `${configuracion[sensor].nombre}: ${formato(valor, sensor)} (${estado.texto})\n`;
         }
@@ -527,8 +564,7 @@ window.preguntar = function(id) {
     if (id === "cosecha") {
         agregarMensaje("🌱 ¿Cuándo estará listo?", "user");
         const cultivo = getCultivoInfo();
-        const porcentaje = Math.min(100, Math.round((0 / cultivo.ciclo.promedio) * 100));
-        const msg = `🌱 <strong>Análisis de COSECHA</strong>\n\n📈 ${porcentaje}% completado\n🌿 ${getEtapaActual(0).nombre}\n\n${porcentaje >= 100 ? '✅ ¡LISTO!' : '🌱 Sigue cuidando las plantas.'}`;
+        const msg = `🌱 <strong>Análisis de COSECHA</strong>\n\n🌿 ${getEtapaActual(0).nombre}\n\n🌱 Sigue cuidando las plantas.`;
         agregarMensaje(msg, "bot");
         return;
     }
@@ -552,82 +588,4 @@ window.preguntar = function(id) {
         return;
     }
     
-    const c = configuracion[id];
-    if (!c) { agregarMensaje("❓ No entendí la pregunta.", "bot"); return; }
-    const p = preguntasChip.find(x => x.id === id);
-    if (p) agregarMensaje(p.texto, "user");
-    const valor = Number(datos[c.campo]);
-    if (!Number.isFinite(valor) || valor === -273.15) {
-        agregarMensaje(`⏳ No tengo lectura de ${c.nombre}.`, "bot");
-        return;
-    }
-    const estado = obtenerEstado(id, valor);
-    const msg = `<strong>${c.nombre}:</strong> ${formato(valor, id)} (${estado.texto})`;
-    agregarMensaje(msg, "bot");
-};
-
-// ============================================================
-// 13. FIREBASE - VALOR ACTUAL
-// ============================================================
-
-onValue(valorActualRef, snapshot => {
-    const datos = snapshot.val();
-    if (!datos) return;
-    datosActuales = datos;
-    lastUpdateTime = new Date();
-    if (isOffline) actualizarEstadoOffline(false);
-    reiniciarTimeout();
-    for (const sensor in configuracion) {
-        actualizarTarjeta(sensor, Number(datos[configuracion[sensor].campo]));
-    }
-    actualizarTarjetaBomba(datos.bomba);
-    actualizarEstadoGeneral();
-    console.log("📊 Datos recibidos:", {
-        pH: datos.PH, temp: datos.Temperatura_Ambiente,
-        tempAgua: datos.Temperatura_Agua, humedad: datos.Humedad_Ambiente,
-        luz: datos.luz, bomba: datos.bomba
-    });
-}, error => console.error("Firebase error:", error));
-
-// ============================================================
-// 14. FIREBASE - HISTORIAL
-// ============================================================
-
-onValue(historialRef, snapshot => {
-    const data = snapshot.val();
-    if (!data) { registrosHistorial = []; return; }
-    registrosHistorial = Object.entries(data).map(([key, value]) => ({ key, ...value }))
-        .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
-    document.getElementById("contador-registros").textContent = registrosHistorial.length;
-    actualizarTabla();
-    actualizarGrafica();
-    actualizarEstadoGeneral();
-}, error => console.error("Firebase error (Historial):", error));
-
-// ============================================================
-// 15. SELECTOR DE CULTIVO
-// ============================================================
-
-document.getElementById('selectorCultivo').addEventListener('change', function() {
-    cultivoSeleccionado = this.value;
-    actualizarPanelCrecimiento();
-    actualizarEstadoGeneral();
-    if (datosActuales) {
-        for (const sensor in configuracion) {
-            actualizarTarjeta(sensor, Number(datosActuales[configuracion[sensor].campo]));
-        }
-        actualizarTarjetaBomba(datosActuales.bomba);
-    }
-});
-
-// ============================================================
-// 16. INICIALIZACIÓN
-// ============================================================
-
-renderizarSensores();
-actualizarPanelCrecimiento();
-reiniciarTimeout();
-setTimeout(() => { iniciarChat(); }, 500);
-
-console.log("🚀 Dashboard Aeroponia UTS - Versión limpia");
-console.log("✅ Firebase conectado y esperando datos...");
+    const c
