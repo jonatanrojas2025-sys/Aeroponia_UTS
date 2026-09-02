@@ -1,5 +1,5 @@
 // ============================================================
-// APP - VERSIÓN CORREGIDA (BADGE + TEMP AGUA)
+// APP - VERSIÓN COMPLETA CON DETECCIÓN DE SENSOR DEFECTUOSO
 // ============================================================
 
 import { valorActualRef, historialRef, onValue } from './firebase-config.js';
@@ -131,7 +131,6 @@ let lastUpdateTime = null;
 let dataTimeout = null;
 const DATA_TIMEOUT_MS = 30000;
 let chatIniciado = false;
-let primerDatoRecibido = false;
 
 // ============================================================
 // 4. FUNCIONES DE UTILIDAD
@@ -165,11 +164,12 @@ function getEtapaActual(dias) {
     return etapa;
 }
 
+// ===== FUNCIÓN CORREGIDA: DETECTA -273.15 =====
 function obtenerEstado(sensor, valor) {
     const dias = 0;
     const rango = getRangoPorEtapa(sensor, dias);
     
-    // ===== DETECTAR SENSOR DEFECTUOSO (TEMP AGUA) =====
+    // DETECTAR SENSOR DEFECTUOSO (TEMP AGUA)
     if (sensor === 'temp-agua' && valor === -273.15) {
         return { estado: "danger", texto: "❌ Sensor defectuoso" };
     }
@@ -236,7 +236,7 @@ function renderizarSensores() {
 }
 
 // ============================================================
-// 6. ACTUALIZAR TARJETAS
+// 6. ACTUALIZAR TARJETAS (CORREGIDO)
 // ============================================================
 
 function actualizarTarjeta(sensor, valor) {
@@ -246,7 +246,7 @@ function actualizarTarjeta(sensor, valor) {
     const card = document.getElementById(`card-${sensor}`);
     if (!elemento) return;
 
-    // ==== PERMITIR -273.15 PARA DETECTAR SENSOR DEFECTUOSO ====
+    // PERMITIR -273.15 PARA DETECTAR SENSOR DEFECTUOSO
     if (isOffline || valor === null || !Number.isFinite(valor)) {
         card?.classList.remove("estado-ok", "estado-warning", "estado-danger", "estado-off");
         card?.classList.add("estado-offline");
@@ -258,7 +258,7 @@ function actualizarTarjeta(sensor, valor) {
 
     const resultado = obtenerEstado(sensor, valor);
     
-    // ==== MOSTRAR -273.15 COMO "SENSOR DEFECTUOSO" ====
+    // MOSTRAR -273.15 COMO "SENSOR DEFECTUOSO"
     if (sensor === 'temp-agua' && valor === -273.15) {
         elemento.innerHTML = "-273.15°C";
         status.textContent = "❌ Sensor defectuoso";
@@ -326,7 +326,7 @@ function actualizarPanelCrecimiento() {
 }
 
 // ============================================================
-// 8. TABLA
+// 8. TABLA (CORREGIDA)
 // ============================================================
 
 function actualizarTabla() {
@@ -341,6 +341,19 @@ function actualizarTabla() {
         const tempAgua = Number(r.Temperatura_Agua), hum = Number(r.Humedad_Ambiente);
         const luz = Number(r.luz), bombaOn = r.bomba === true || r.bomba === "true" || r.bomba === 1;
         let fecha = r.timestamp ? new Date(r.timestamp).toLocaleTimeString() : "--";
+        
+        // DETECTAR TEMP AGUA DEFECTUOSA EN TABLA
+        let tempAguaDisplay = "--";
+        let tempAguaClass = "";
+        if (Number.isFinite(tempAgua)) {
+            if (tempAgua === -273.15) {
+                tempAguaDisplay = "❌ Defectuoso";
+                tempAguaClass = "td-danger";
+            } else {
+                tempAguaDisplay = tempAgua.toFixed(1) + "°C";
+            }
+        }
+        
         const estados = [
             obtenerEstado("ph", ph).estado,
             obtenerEstado("temp", temp).estado,
@@ -357,7 +370,7 @@ function actualizarTabla() {
             <td style="color:#64748b;font-size:12px;">${fecha}</td>
             <td>${Number.isFinite(ph) ? ph.toFixed(2) : "--"}</td>
             <td>${Number.isFinite(temp) ? temp.toFixed(1)+"°C" : "--"}</td>
-            <td>${Number.isFinite(tempAgua) ? tempAgua.toFixed(1)+"°C" : "--"}</td>
+            <td class="${tempAguaClass}">${tempAguaDisplay}</td>
             <td>${Number.isFinite(hum) ? hum.toFixed(1)+"%" : "--"}</td>
             <td>${Number.isFinite(luz) ? luz.toFixed(0)+" lux" : "--"}</td>
             <td class="${bombaOn ? 'td-ok' : ''}">${bombaOn ? "🔴 ON" : "⚪ OFF"}</td>
@@ -451,7 +464,7 @@ function actualizarEstadoGeneral() {
 }
 
 // ============================================================
-// 11. CONEXIÓN - CORREGIDO
+// 11. CONEXIÓN (CORREGIDO)
 // ============================================================
 
 function actualizarEstadoOffline(offline) {
@@ -588,4 +601,83 @@ window.preguntar = function(id) {
         return;
     }
     
-    const c
+    const c = configuracion[id];
+    if (!c) { agregarMensaje("❓ No entendí la pregunta.", "bot"); return; }
+    const p = preguntasChip.find(x => x.id === id);
+    if (p) agregarMensaje(p.texto, "user");
+    const valor = Number(datos[c.campo]);
+    if (!Number.isFinite(valor)) {
+        agregarMensaje(`⏳ No tengo lectura de ${c.nombre}.`, "bot");
+        return;
+    }
+    const estado = obtenerEstado(id, valor);
+    const msg = `<strong>${c.nombre}:</strong> ${formato(valor, id)} (${estado.texto})`;
+    agregarMensaje(msg, "bot");
+};
+
+// ============================================================
+// 13. FIREBASE - VALOR ACTUAL
+// ============================================================
+
+onValue(valorActualRef, snapshot => {
+    const datos = snapshot.val();
+    if (!datos) return;
+    datosActuales = datos;
+    lastUpdateTime = new Date();
+    if (isOffline) actualizarEstadoOffline(false);
+    reiniciarTimeout();
+    for (const sensor in configuracion) {
+        actualizarTarjeta(sensor, Number(datos[configuracion[sensor].campo]));
+    }
+    actualizarTarjetaBomba(datos.bomba);
+    actualizarEstadoGeneral();
+    console.log("📊 Datos recibidos:", {
+        pH: datos.PH, temp: datos.Temperatura_Ambiente,
+        tempAgua: datos.Temperatura_Agua, humedad: datos.Humedad_Ambiente,
+        luz: datos.luz, bomba: datos.bomba
+    });
+}, error => console.error("Firebase error:", error));
+
+// ============================================================
+// 14. FIREBASE - HISTORIAL
+// ============================================================
+
+onValue(historialRef, snapshot => {
+    const data = snapshot.val();
+    if (!data) { registrosHistorial = []; return; }
+    registrosHistorial = Object.entries(data).map(([key, value]) => ({ key, ...value }))
+        .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+    document.getElementById("contador-registros").textContent = registrosHistorial.length;
+    actualizarTabla();
+    actualizarGrafica();
+    actualizarEstadoGeneral();
+}, error => console.error("Firebase error (Historial):", error));
+
+// ============================================================
+// 15. SELECTOR DE CULTIVO
+// ============================================================
+
+document.getElementById('selectorCultivo').addEventListener('change', function() {
+    cultivoSeleccionado = this.value;
+    actualizarPanelCrecimiento();
+    actualizarEstadoGeneral();
+    if (datosActuales) {
+        for (const sensor in configuracion) {
+            actualizarTarjeta(sensor, Number(datosActuales[configuracion[sensor].campo]));
+        }
+        actualizarTarjetaBomba(datosActuales.bomba);
+    }
+});
+
+// ============================================================
+// 16. INICIALIZACIÓN
+// ============================================================
+
+renderizarSensores();
+actualizarPanelCrecimiento();
+reiniciarTimeout();
+setTimeout(() => { iniciarChat(); }, 500);
+
+console.log("🚀 Dashboard Aeroponia UTS - Versión completa con detección de sensor defectuoso");
+console.log("✅ Firebase conectado y esperando datos...");
+console.log("🌊 Si la temperatura del agua es -273.15°C, se mostrará como 'Sensor defectuoso'");
