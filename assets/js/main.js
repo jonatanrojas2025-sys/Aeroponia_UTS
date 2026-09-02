@@ -323,6 +323,22 @@
             luz: { min: 300, max: 800, ideal: 500, unidad: " lux" }
         };
 
+        // Límites físicamente posibles por sensor. Un valor fuera de aquí
+        // no es un problema de cultivo, es un sensor dañado/desconectado.
+        const LIMITES_FISICOS = {
+            ph: { min: 0, max: 14 },
+            temp: { min: -20, max: 60 },
+            "temp-agua": { min: -5, max: 60 },
+            hum: { min: 0, max: 100 },
+            luz: { min: 0, max: 100000 }
+        };
+
+        function esValorImposible(sensor, valor) {
+            const limite = LIMITES_FISICOS[sensor];
+            if (!limite || !Number.isFinite(valor)) return false;
+            return valor < limite.min || valor > limite.max;
+        }
+
         // =========================================================
         // 6. FUNCIONES DE ANALISIS
         // =========================================================
@@ -427,6 +443,10 @@
                 return { estado: "warning", texto: "⚠️ Sin datos" };
             }
 
+            if (esValorImposible(sensor, valor)) {
+                return { estado: "danger", texto: "🔌 Sensor dañado", esError: true };
+            }
+
             const { min, max } = rango;
 
             if (sensor === 'luz') {
@@ -466,6 +486,19 @@
             const c = configuracion[sensor];
             let soluciones = [];
             let explicacion = "";
+
+            if (esValorImposible(sensor, valor)) {
+                return {
+                    soluciones: [
+                        "🔌 Revisa que el sensor esté bien conectado",
+                        "🔋 Verifica la alimentación eléctrica del sensor",
+                        "🧵 Revisa el cableado en busca de daños o falsos contactos",
+                        "🔄 Reinicia el módulo/ESP32 si el problema continúa",
+                        "🛠️ Si persiste, reemplaza el sensor"
+                    ],
+                    explicacion: `🔌 El sensor de ${c.nombre.toLowerCase()} está entregando un valor imposible (${valor}${c.unidad}). Esto no es un problema del cultivo, es una falla del sensor.`
+                };
+            }
 
             if (!rango || !Number.isFinite(valor)) {
                 return {
@@ -564,6 +597,13 @@
             let significado = "";
             let recomendacion = "";
 
+            if (estado.esError) {
+                significado = `🔌 El sensor de ${c.nombre.toLowerCase()} está entregando un valor físicamente imposible (${valor}${c.unidad}). No es un problema del cultivo: indica un sensor desconectado, dañado o con falla de lectura.`;
+                recomendacion = "🔧 Revisa la conexión, el cableado y la alimentación del sensor. Si el problema persiste, reemplázalo.";
+                return { estado, stats, tendencia, anomalia: anomalia.esAnomalia, significado, recomendacion, soluciones,
+                    totalDatos: stats.total, etapa: rango ? rango.etapa : undefined };
+            }
+
             if (!stats.promedio || stats.total < 3) {
                 significado =
                     `📊 Valor actual: ${valor.toFixed(c.decimales)}${c.unidad}. Aún tengo pocos datos históricos (${stats.total} registros).`;
@@ -614,7 +654,7 @@
             if (!elemento) return;
 
             if (isOffline) {
-                card.classList.remove("estado-ok", "estado-warning", "estado-danger", "estado-off");
+                card.classList.remove("estado-ok", "estado-warning", "estado-danger", "estado-off", "sensor-error");
                 card.classList.add("estado-offline");
                 status.className = "sub sub-offline";
                 if (sensor === 'luz') {
@@ -634,8 +674,10 @@
             }
 
             const resultado = obtenerEstado(sensor, valor);
-            
-            if (sensor === 'luz') {
+
+            if (resultado.esError) {
+                elemento.innerHTML = `<span style="font-size:20px;">⚠️ ERROR</span>`;
+            } else if (sensor === 'luz') {
                 elemento.innerHTML = resultado.texto;
             } else {
                 elemento.innerHTML = valor.toFixed(c.decimales) + `<span class="unit">${c.unidad}</span>`;
@@ -644,8 +686,9 @@
             status.textContent = resultado.texto;
             status.className = `sub sub-${resultado.estado}`;
 
-            card.classList.remove("estado-ok", "estado-warning", "estado-danger", "estado-off", "estado-offline");
+            card.classList.remove("estado-ok", "estado-warning", "estado-danger", "estado-off", "estado-offline", "sensor-error");
             card.classList.add(`estado-${resultado.estado}`);
+            if (resultado.esError) card.classList.add("sensor-error");
         }
 
         function actualizarTarjetaBomba(valor) {
@@ -2352,41 +2395,31 @@
             localStorage.setItem("guiaAeroponiaVista", "1");
         }
 
-        function posicionarGuiaCard(rect) {
+        // La tarjeta de la guía queda en una posición FIJA (no salta según
+        // el botón que se está resaltando). En escritorio se centra en la
+        // pantalla; en móvil se ancla abajo como una hoja fija, siempre
+        // visible y fácil de leer. Solo el "spotlight" (resplandor) se
+        // mueve para señalar el elemento correspondiente.
+        function posicionarGuiaCard() {
             const card = document.getElementById("guiaCard");
             if (!card) return;
 
-            const margin = 18;
-            const ancho = Math.min(520, window.innerWidth - 32);
-            const alto = Math.min(card.offsetHeight || 430, window.innerHeight - 32);
+            const margin = 16;
+            const esMovil = window.innerWidth <= 640;
+            const ancho = Math.min(520, window.innerWidth - margin * 2);
 
             card.style.width = `${ancho}px`;
+            card.style.left = `${(window.innerWidth - ancho) / 2}px`;
 
-            if (!rect) {
-                card.style.left = `${(window.innerWidth - ancho) / 2}px`;
-                card.style.top = `${Math.max(16, (window.innerHeight - alto) / 2)}px`;
-                return;
+            if (esMovil) {
+                card.style.top = "auto";
+                card.style.bottom = `${margin}px`;
+                card.style.maxHeight = `${Math.min(window.innerHeight * 0.72, 560)}px`;
+            } else {
+                const alto = Math.min(card.offsetHeight || 430, window.innerHeight - margin * 2);
+                card.style.bottom = "auto";
+                card.style.top = `${Math.max(margin, (window.innerHeight - alto) / 2)}px`;
             }
-
-            let left = rect.left;
-            let top = rect.bottom + 18;
-
-            if (top + alto > window.innerHeight - margin) {
-                top = rect.top - alto - 18;
-            }
-
-            if (top < margin) {
-                top = Math.max(margin, (window.innerHeight - alto) / 2);
-            }
-
-            if (left + ancho > window.innerWidth - margin) {
-                left = window.innerWidth - ancho - margin;
-            }
-
-            if (left < margin) left = margin;
-
-            card.style.left = `${left}px`;
-            card.style.top = `${top}px`;
         }
 
         function mostrarPasoGuia(indice) {
@@ -2435,6 +2468,7 @@
             overlay.classList.add("visible");
             document.body.classList.add("guia-activa");
             actualizarBlurGuia(null);
+            posicionarGuiaCard();
 
             requestAnimationFrame(() => {
                 const objetivoId = paso.objetivo;
@@ -2466,12 +2500,10 @@
                         spotlight.style.height = `${Math.min(window.innerHeight, r.height + pad * 2)}px`;
                         actualizarBlurGuia(r);
                         spotlight.classList.add("visible");
-                        posicionarGuiaCard(r);
                     }, 180);
                 } else {
                     spotlight.classList.remove("visible");
                     actualizarBlurGuia(null);
-                    posicionarGuiaCard(null);
                 }
             });
         }

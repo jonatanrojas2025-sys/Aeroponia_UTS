@@ -20,7 +20,10 @@
         <!-- ========== HEADER ========== -->
         <div class="header">
             <h1>
-                <i class="fas fa-seedling"></i>
+                <img src="assets/img/logo.png" alt="Logo" class="logo-app" style="display:none;"
+                     onload="this.style.display='inline-block'; document.getElementById('iconoRespaldo').style.display='none';"
+                     onerror="this.style.display='none';">
+                <i class="fas fa-seedling" id="iconoRespaldo"></i>
                 Dashboard Aeroponia UTS
                 <span style="font-size: 14px; color: #64748b; font-weight: 400;">con soluciones prácticas</span>
             </h1>
@@ -362,8 +365,6 @@
     </div>
 
 
-
-    <script src="assets/js/guia.js"></script>
 
     <!-- =========================================================
          JAVASCRIPT COMPLETO
