@@ -1,4 +1,4 @@
-        // =========================================================
+// =========================================================
         // 1. FIREBASE
         // =========================================================
         import {
@@ -1020,6 +1020,10 @@
     previewEtapa = idx;
     actualizarPanelCrecimiento(idx);
 };
+        function cancelarPreview() {
+            previewEtapa = null;
+            actualizarPanelCrecimiento(null);
+        }
         function aplicarPreview() {
     if (previewEtapa === null || isOffline) return;
     
