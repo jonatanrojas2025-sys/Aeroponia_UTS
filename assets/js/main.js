@@ -2388,8 +2388,10 @@
             limpiarObjetivoGuia();
             const overlay = document.getElementById("guiaOverlay");
             const spotlight = document.getElementById("guiaSpotlight");
+            const card = document.getElementById("guiaCard");
             overlay.classList.remove("visible");
             spotlight.classList.remove("visible");
+            if (card) card.classList.remove("visible");
             actualizarBlurGuia(null);
             document.body.classList.remove("guia-activa");
             localStorage.setItem("guiaAeroponiaVista", "1");
@@ -2466,6 +2468,7 @@
                     : `Siguiente <i class="fas fa-arrow-right"></i>`);
 
             overlay.classList.add("visible");
+            card.classList.add("visible");
             document.body.classList.add("guia-activa");
             actualizarBlurGuia(null);
             posicionarGuiaCard();
