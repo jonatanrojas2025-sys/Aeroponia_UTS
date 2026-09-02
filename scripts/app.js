@@ -1,5 +1,5 @@
 // ============================================================
-// APP - VERSIÓN COMPLETA CON DETECCIÓN DE SENSOR DEFECTUOSO
+// APP - VERSIÓN COMPLETA CON CHAT Y ASISTENTE INTEGRADO
 // ============================================================
 
 import { valorActualRef, historialRef, onValue } from './firebase-config.js';
@@ -12,7 +12,7 @@ const cultivosDB = {
     lechuga: {
         nombre: "Lechuga",
         tipo: "Hoja verde",
-        descripcion: "Cultivo de rápido crecimiento.",
+        descripcion: "Cultivo de rápido crecimiento, ideal para principiantes.",
         ph: { min: 5.5, max: 6.5, ideal: 6.0 },
         temp: { min: 15, max: 24, ideal: 20 },
         "temp-agua": { min: 18, max: 24, ideal: 21 },
@@ -20,11 +20,11 @@ const cultivosDB = {
         luz: { min: 400, max: 600, ideal: 500 },
         ciclo: { min: 30, max: 45, promedio: 38 },
         etapas: [
-            { dia: 0, nombre: "🌱 Germinación" },
-            { dia: 7, nombre: "🌿 Plántula" },
-            { dia: 14, nombre: "🌱 Crecimiento" },
-            { dia: 25, nombre: "🌿 Desarrollo" },
-            { dia: 35, nombre: "✅ Cosecha" }
+            { dia: 0, nombre: "🌱 Germinación", descripcion: "Semilla hidratada, sin luz directa." },
+            { dia: 7, nombre: "🌿 Plántula", descripcion: "Primeras hojas, luz suave." },
+            { dia: 14, nombre: "🌱 Crecimiento", descripcion: "Aumenta luz y nutrientes." },
+            { dia: 25, nombre: "🌿 Desarrollo", descripcion: "Planta grande, lista para cosechar." },
+            { dia: 35, nombre: "✅ Cosecha", descripcion: "¡Lista para cortar!" }
         ]
     },
     fresa: {
@@ -36,11 +36,11 @@ const cultivosDB = {
         luz: { min: 500, max: 700, ideal: 600 },
         ciclo: { min: 60, max: 90, promedio: 75 },
         etapas: [
-            { dia: 0, nombre: "🌱 Germinación" },
-            { dia: 15, nombre: "🌿 Plántula" },
-            { dia: 30, nombre: "🌱 Crecimiento" },
-            { dia: 50, nombre: "🌿 Floración" },
-            { dia: 70, nombre: "🍓 Cosecha" }
+            { dia: 0, nombre: "🌱 Germinación", descripcion: "Semilla hidratada, sin luz directa." },
+            { dia: 15, nombre: "🌿 Plántula", descripcion: "Primeras hojas, luz suave." },
+            { dia: 30, nombre: "🌱 Crecimiento", descripcion: "Aumenta luz y nutrientes." },
+            { dia: 50, nombre: "🌿 Floración", descripcion: "Aparecen flores, poliniza." },
+            { dia: 70, nombre: "🍓 Cosecha", descripcion: "¡Fresas rojas y dulces!" }
         ]
     },
     tomate: {
@@ -52,11 +52,11 @@ const cultivosDB = {
         luz: { min: 600, max: 800, ideal: 700 },
         ciclo: { min: 70, max: 100, promedio: 85 },
         etapas: [
-            { dia: 0, nombre: "🌱 Germinación" },
-            { dia: 20, nombre: "🌿 Plántula" },
-            { dia: 40, nombre: "🌱 Crecimiento" },
-            { dia: 60, nombre: "🌿 Floración" },
-            { dia: 80, nombre: "🍅 Cosecha" }
+            { dia: 0, nombre: "🌱 Germinación", descripcion: "Semilla hidratada." },
+            { dia: 20, nombre: "🌿 Plántula", descripcion: "Primeras hojas." },
+            { dia: 40, nombre: "🌱 Crecimiento", descripcion: "Aumenta luz y nutrientes." },
+            { dia: 60, nombre: "🌿 Floración", descripcion: "Aparecen flores." },
+            { dia: 80, nombre: "🍅 Cosecha", descripcion: "¡Tomates rojos y firmes!" }
         ]
     },
     cilantro: {
@@ -68,10 +68,10 @@ const cultivosDB = {
         luz: { min: 300, max: 500, ideal: 400 },
         ciclo: { min: 25, max: 40, promedio: 32 },
         etapas: [
-            { dia: 0, nombre: "🌱 Germinación" },
-            { dia: 10, nombre: "🌿 Plántula" },
-            { dia: 20, nombre: "🌱 Crecimiento" },
-            { dia: 30, nombre: "🌿 Cosecha" }
+            { dia: 0, nombre: "🌱 Germinación", descripcion: "Semilla hidratada." },
+            { dia: 10, nombre: "🌿 Plántula", descripcion: "Primeras hojas." },
+            { dia: 20, nombre: "🌱 Crecimiento", descripcion: "Aumenta luz y nutrientes." },
+            { dia: 30, nombre: "🌿 Cosecha", descripcion: "¡Listo para cortar!" }
         ]
     },
     albahaca: {
@@ -83,10 +83,10 @@ const cultivosDB = {
         luz: { min: 500, max: 700, ideal: 600 },
         ciclo: { min: 30, max: 50, promedio: 40 },
         etapas: [
-            { dia: 0, nombre: "🌱 Germinación" },
-            { dia: 12, nombre: "🌿 Plántula" },
-            { dia: 25, nombre: "🌱 Crecimiento" },
-            { dia: 38, nombre: "🌿 Cosecha" }
+            { dia: 0, nombre: "🌱 Germinación", descripcion: "Semilla hidratada." },
+            { dia: 12, nombre: "🌿 Plántula", descripcion: "Primeras hojas." },
+            { dia: 25, nombre: "🌱 Crecimiento", descripcion: "Aumenta luz y nutrientes." },
+            { dia: 38, nombre: "🌿 Cosecha", descripcion: "¡Listo para cortar!" }
         ]
     },
     espinaca: {
@@ -98,10 +98,10 @@ const cultivosDB = {
         luz: { min: 300, max: 500, ideal: 400 },
         ciclo: { min: 25, max: 40, promedio: 32 },
         etapas: [
-            { dia: 0, nombre: "🌱 Germinación" },
-            { dia: 8, nombre: "🌿 Plántula" },
-            { dia: 18, nombre: "🌱 Crecimiento" },
-            { dia: 30, nombre: "🌿 Cosecha" }
+            { dia: 0, nombre: "🌱 Germinación", descripcion: "Semilla hidratada." },
+            { dia: 8, nombre: "🌿 Plántula", descripcion: "Primeras hojas." },
+            { dia: 18, nombre: "🌱 Crecimiento", descripcion: "Aumenta luz y nutrientes." },
+            { dia: 30, nombre: "🌿 Cosecha", descripcion: "¡Listo para cortar!" }
         ]
     }
 };
@@ -131,6 +131,7 @@ let lastUpdateTime = null;
 let dataTimeout = null;
 const DATA_TIMEOUT_MS = 30000;
 let chatIniciado = false;
+let fechaInicio = null;
 
 // ============================================================
 // 4. FUNCIONES DE UTILIDAD
@@ -164,28 +165,37 @@ function getEtapaActual(dias) {
     return etapa;
 }
 
-// ===== FUNCIÓN CORREGIDA: DETECTA -273.15 =====
+function obtenerDiasTranscurridos() {
+    if (fechaInicio) {
+        const ahora = new Date();
+        const inicio = new Date(fechaInicio);
+        const diff = ahora - inicio;
+        return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
+    }
+    return 0;
+}
+
 function obtenerEstado(sensor, valor) {
-    const dias = 0;
+    const dias = obtenerDiasTranscurridos();
     const rango = getRangoPorEtapa(sensor, dias);
-    
-    // DETECTAR SENSOR DEFECTUOSO (TEMP AGUA)
+
+    // Detectar sensor defectuoso (temp agua)
     if (sensor === 'temp-agua' && valor === -273.15) {
         return { estado: "danger", texto: "❌ Sensor defectuoso" };
     }
-    
+
     if (valor === null || isNaN(valor)) {
         return { estado: "warning", texto: "⚠️ Sin datos" };
     }
-    
+
     const { min, max } = rango;
-    
+
     if (sensor === 'luz') {
         if (valor < min) return { estado: "warning", texto: "🌑 Poca luz" };
         if (valor > max) return { estado: "danger", texto: "☀️ Exceso de luz" };
         return { estado: "ok", texto: "☀️ Buena luz" };
     }
-    
+
     if (valor >= min && valor <= max) return { estado: "ok", texto: "✅ Bueno" };
     const margen = (max - min) * 0.20;
     if (valor >= min - margen && valor <= max + margen) return { estado: "warning", texto: "⚠️ Regular" };
@@ -194,12 +204,196 @@ function obtenerEstado(sensor, valor) {
 
 function formato(valor, sensor) {
     const c = configuracion[sensor];
-    if (valor === null || !Number.isFinite(valor)) return "--";
+    if (!Number.isFinite(valor) || valor === -273.15) return "--";
     return valor.toFixed(c.decimales) + c.unidad;
 }
 
 // ============================================================
-// 5. RENDERIZAR SENSORES
+// 5. ANÁLISIS DE SENSORES
+// ============================================================
+
+function obtenerEstadisticasHistoricas(sensor) {
+    const c = configuracion[sensor];
+    const valores = registrosHistorial
+        .map(r => Number(r[c.campo]))
+        .filter(v => Number.isFinite(v) && v !== -273.15);
+
+    if (valores.length === 0) {
+        return { total: 0, promedio: null, minimo: null, maximo: null, desviacion: null, valores: [] };
+    }
+
+    const suma = valores.reduce((a, b) => a + b, 0);
+    const promedio = suma / valores.length;
+    const minimo = Math.min(...valores);
+    const maximo = Math.max(...valores);
+    const diffCuadradas = valores.map(v => Math.pow(v - promedio, 2));
+    const desviacion = Math.sqrt(diffCuadradas.reduce((a, b) => a + b, 0) / valores.length);
+
+    return { total: valores.length, promedio, minimo, maximo, desviacion, valores };
+}
+
+function obtenerTendenciaReal(sensor, ventana = 20) {
+    const c = configuracion[sensor];
+    const valores = registrosHistorial
+        .map(r => Number(r[c.campo]))
+        .filter(v => Number.isFinite(v) && v !== -273.15);
+
+    if (valores.length < 4) {
+        return { tipo: "estable", texto: "No hay suficientes datos históricos.", porcentaje: 0 };
+    }
+
+    const recientes = valores.slice(-ventana);
+    const anteriores = valores.slice(0, -ventana).slice(-ventana);
+
+    if (recientes.length < 3 || anteriores.length < 3) {
+        return { tipo: "estable", texto: "Datos insuficientes para tendencia.", porcentaje: 0 };
+    }
+
+    const promedioAnterior = anteriores.reduce((a, b) => a + b, 0) / anteriores.length;
+    const promedioReciente = recientes.reduce((a, b) => a + b, 0) / recientes.length;
+
+    if (promedioAnterior === 0) {
+        return { tipo: "estable", texto: "Datos insuficientes.", porcentaje: 0 };
+    }
+
+    const diferencia = promedioReciente - promedioAnterior;
+    const porcentaje = (diferencia / Math.abs(promedioAnterior)) * 100;
+
+    if (Math.abs(porcentaje) < 3) {
+        return { tipo: "estable", texto: `📊 Estable (variación del ${porcentaje.toFixed(1)}%).`, porcentaje };
+    }
+
+    if (diferencia > 0) {
+        return { tipo: "subiendo", texto: `⬆️ Subiendo un ${porcentaje.toFixed(1)}% en las últimas mediciones.`, porcentaje };
+    }
+
+    return { tipo: "bajando", texto: `⬇️ Bajando un ${Math.abs(porcentaje).toFixed(1)}% en las últimas mediciones.`, porcentaje };
+}
+
+function generarSolucionesPracticas(sensor, valor) {
+    const dias = obtenerDiasTranscurridos();
+    const rango = getRangoPorEtapa(sensor, dias);
+    const c = configuracion[sensor];
+    let soluciones = [];
+    let explicacion = "";
+
+    if (!rango || !Number.isFinite(valor) || valor === -273.15) {
+        return {
+            soluciones: ["⚠️ No hay datos de referencia o sensor defectuoso."],
+            explicacion: "Espera a tener más datos o verifica la conexión del sensor."
+        };
+    }
+
+    const { min, max, ideal, etapa } = rango;
+
+    if (sensor === 'temp-agua' && valor === -273.15) {
+        explicacion = `🌊 El sensor de temperatura del agua está defectuoso (${valor.toFixed(1)}°C).`;
+        soluciones = [
+            "🔌 Verifica la conexión del sensor DS18B20",
+            "🔄 Reinicia el ESP32",
+            "🧪 Prueba el sensor con otro código de prueba",
+            "🛠️ Reemplaza el sensor si sigue dando lecturas erróneas"
+        ];
+        return { soluciones, explicacion };
+    }
+
+    if (sensor === 'luz') {
+        if (valor < min) {
+            explicacion = `💡 Hay POCA luz (${valor.toFixed(0)} lux) para la etapa ${etapa}.`;
+            soluciones = ["💡 Aumenta la intensidad de las luces", "📏 Reduce la distancia entre las luces y las plantas", "⏰ Extiende el fotoperiodo a 12-14 horas"];
+        } else if (valor > max) {
+            explicacion = `💡 Hay EXCESO de luz (${valor.toFixed(0)} lux) para la etapa ${etapa}.`;
+            soluciones = ["📏 Aumenta la distancia de las luces", "🔅 Reduce la intensidad de las luces", "⏰ Reduce el fotoperiodo a 10-12 horas"];
+        } else {
+            explicacion = `✅ La iluminación (${valor.toFixed(0)} lux) es adecuada.`;
+            soluciones = ["👍 Mantén las condiciones de luz actuales"];
+        }
+    } else if (sensor === 'temp' || sensor === 'temp-agua') {
+        const nombreSensor = sensor === 'temp' ? 'Temperatura ambiente' : 'Temperatura del agua';
+        if (valor < min) {
+            explicacion = `🌡️ La ${nombreSensor} (${valor.toFixed(1)}°C) está FRÍA.`;
+            soluciones = ["🔥 Enciende un calefactor", "🪟 Cierra ventanas"];
+        } else if (valor > max) {
+            explicacion = `🌡️ La ${nombreSensor} (${valor.toFixed(1)}°C) está CALIENTE. ¡ACTÚA!`;
+            soluciones = ["💨 Abre ventanas", "🌀 Coloca un ventilador"];
+        } else {
+            explicacion = `✅ La ${nombreSensor} (${valor.toFixed(1)}°C) es ideal.`;
+            soluciones = ["👍 Mantén las condiciones actuales"];
+        }
+    } else if (sensor === 'hum') {
+        if (valor < min) {
+            explicacion = `💧 El ambiente está SECO (${valor.toFixed(1)}%).`;
+            soluciones = ["💨 Usa un humidificador", "💧 Coloca bandejas con agua"];
+        } else if (valor > max) {
+            explicacion = `💧 El ambiente está HÚMEDO (${valor.toFixed(1)}%).`;
+            soluciones = ["💨 Abre ventanas", "🌀 Usa un ventilador"];
+        } else {
+            explicacion = `✅ La humedad (${valor.toFixed(1)}%) es ideal.`;
+            soluciones = ["👍 Mantén las condiciones actuales"];
+        }
+    } else if (sensor === 'ph') {
+        if (valor < min) {
+            explicacion = `🔬 El pH está ÁCIDO (${valor.toFixed(2)}).`;
+            soluciones = ["🧪 Añade pH UP", "⏳ Espera 15 minutos y mide"];
+        } else if (valor > max) {
+            explicacion = `🔬 El pH está ALCALINO (${valor.toFixed(2)}).`;
+            soluciones = ["🧪 Añade pH DOWN", "⏳ Espera 15 minutos y mide"];
+        } else {
+            explicacion = `✅ El pH (${valor.toFixed(2)}) es ideal.`;
+            soluciones = ["👍 Mantén las condiciones actuales"];
+        }
+    }
+
+    soluciones = soluciones.map(s => s.replace(/\${ideal}/g, ideal).replace(/\${min}/g, min).replace(/\${max}/g, max));
+    return { soluciones, explicacion };
+}
+
+function analizarSensor(sensor, valor) {
+    const c = configuracion[sensor];
+    const dias = obtenerDiasTranscurridos();
+    const rango = getRangoPorEtapa(sensor, dias);
+    const stats = obtenerEstadisticasHistoricas(sensor);
+    const tendencia = obtenerTendenciaReal(sensor, 20);
+    const estado = obtenerEstado(sensor, valor);
+    const soluciones = generarSolucionesPracticas(sensor, valor);
+
+    let significado = "";
+    let recomendacion = "";
+
+    if (sensor === 'temp-agua' && valor === -273.15) {
+        significado = `🌊 El sensor de temperatura del agua está dando una lectura errónea (-273.15°C). Verifica la conexión.`;
+        recomendacion = "🔧 Revisa el sensor DS18B20 o reemplázalo.";
+        return { estado, stats, tendencia, anomalia: true, significado, recomendacion, soluciones, totalDatos: stats.total, etapa: rango?.etapa || 'Desconocida' };
+    }
+
+    if (!stats.promedio || stats.total < 3) {
+        significado = `📊 Valor actual: ${valor.toFixed(c.decimales)}${c.unidad}. Pocos datos históricos (${stats.total} registros).`;
+        recomendacion = "Continúa monitoreando.";
+        return { estado, stats, tendencia, anomalia: false, significado, recomendacion, soluciones, totalDatos: stats.total };
+    }
+
+    const { min, max, ideal, etapa } = rango;
+
+    if (valor < min) {
+        significado = `📉 Valor (${valor.toFixed(c.decimales)}${c.unidad}) por DEBAJO del rango para "${etapa}" (${min}-${max}${c.unidad}).`;
+        recomendacion = `⚠️ Sube a ${ideal}${c.unidad}.`;
+    } else if (valor > max) {
+        significado = `📈 Valor (${valor.toFixed(c.decimales)}${c.unidad}) por ENCIMA del rango para "${etapa}" (${min}-${max}${c.unidad}).`;
+        recomendacion = `⚠️ Baja a ${ideal}${c.unidad}.`;
+    } else {
+        significado = `✅ Valor (${valor.toFixed(c.decimales)}${c.unidad}) DENTRO del rango para "${etapa}" (${min}-${max}${c.unidad}).`;
+        recomendacion = `👍 Mantén en ${ideal}${c.unidad}.`;
+    }
+
+    if (tendencia.porcentaje !== 0 && Math.abs(tendencia.porcentaje) > 3) {
+        significado += ` 📊 ${tendencia.texto}`;
+    }
+
+    return { estado, stats, tendencia, anomalia: false, significado, recomendacion, soluciones, totalDatos: stats.total, etapa };
+}
+
+// ============================================================
+// 6. RENDERIZAR SENSORES
 // ============================================================
 
 function renderizarSensores() {
@@ -221,7 +415,6 @@ function renderizarSensores() {
         grid.appendChild(card);
     }
 
-    // Bomba
     const bombaCard = document.createElement('div');
     bombaCard.className = 'sensor-card';
     bombaCard.id = 'card-bomba';
@@ -236,7 +429,7 @@ function renderizarSensores() {
 }
 
 // ============================================================
-// 6. ACTUALIZAR TARJETAS (CORREGIDO)
+// 7. ACTUALIZAR TARJETAS
 // ============================================================
 
 function actualizarTarjeta(sensor, valor) {
@@ -246,8 +439,7 @@ function actualizarTarjeta(sensor, valor) {
     const card = document.getElementById(`card-${sensor}`);
     if (!elemento) return;
 
-    // PERMITIR -273.15 PARA DETECTAR SENSOR DEFECTUOSO
-    if (isOffline || valor === null || !Number.isFinite(valor)) {
+    if (isOffline || !Number.isFinite(valor) || valor === -273.15) {
         card?.classList.remove("estado-ok", "estado-warning", "estado-danger", "estado-off");
         card?.classList.add("estado-offline");
         status.className = "sub sub-offline";
@@ -257,17 +449,6 @@ function actualizarTarjeta(sensor, valor) {
     }
 
     const resultado = obtenerEstado(sensor, valor);
-    
-    // MOSTRAR -273.15 COMO "SENSOR DEFECTUOSO"
-    if (sensor === 'temp-agua' && valor === -273.15) {
-        elemento.innerHTML = "-273.15°C";
-        status.textContent = "❌ Sensor defectuoso";
-        status.className = "sub sub-danger";
-        card?.classList.remove("estado-ok", "estado-warning", "estado-danger", "estado-off", "estado-offline");
-        card?.classList.add("estado-danger");
-        return;
-    }
-    
     if (sensor === 'luz') {
         elemento.innerHTML = resultado.texto;
     } else {
@@ -305,19 +486,20 @@ function actualizarTarjetaBomba(valor) {
 }
 
 // ============================================================
-// 7. PANEL DE CRECIMIENTO
+// 8. PANEL DE CRECIMIENTO
 // ============================================================
 
 function actualizarPanelCrecimiento() {
     const cultivo = getCultivoInfo();
-    const dias = 0;
+    const dias = obtenerDiasTranscurridos();
     const etapaActual = getEtapaActual(dias);
-    const porcentaje = 0;
+    const porcentaje = Math.min(100, Math.round((dias / cultivo.ciclo.promedio) * 100));
 
     const el = (id) => document.getElementById(id);
     if (el('etapaIcono')) el('etapaIcono').textContent = etapaActual.nombre.split(' ')[0] || '🌱';
     if (el('etapaNombre')) el('etapaNombre').textContent = etapaActual.nombre;
     if (el('etapaDia')) el('etapaDia').textContent = `Día ${dias}`;
+    if (el('etapaDesc')) el('etapaDesc').textContent = etapaActual.descripcion || '';
     if (el('progresoPorcentaje')) el('progresoPorcentaje').textContent = `${porcentaje}%`;
     const barra = el('progresoBarra');
     if (barra) { barra.style.width = `${porcentaje}%`; barra.classList.toggle('offline', isOffline); }
@@ -326,7 +508,7 @@ function actualizarPanelCrecimiento() {
 }
 
 // ============================================================
-// 8. TABLA (CORREGIDA)
+// 9. TABLA
 // ============================================================
 
 function actualizarTabla() {
@@ -342,7 +524,6 @@ function actualizarTabla() {
         const luz = Number(r.luz), bombaOn = r.bomba === true || r.bomba === "true" || r.bomba === 1;
         let fecha = r.timestamp ? new Date(r.timestamp).toLocaleTimeString() : "--";
         
-        // DETECTAR TEMP AGUA DEFECTUOSA EN TABLA
         let tempAguaDisplay = "--";
         let tempAguaClass = "";
         if (Number.isFinite(tempAgua)) {
@@ -381,7 +562,7 @@ function actualizarTabla() {
 }
 
 // ============================================================
-// 9. GRÁFICA
+// 10. GRÁFICA
 // ============================================================
 
 function actualizarGrafica() {
@@ -415,7 +596,7 @@ function actualizarGrafica() {
 }
 
 // ============================================================
-// 10. ESTADO GENERAL
+// 11. ESTADO GENERAL
 // ============================================================
 
 function actualizarEstadoGeneral() {
@@ -427,7 +608,7 @@ function actualizarEstadoGeneral() {
     }
     const cultivo = getCultivoInfo();
     const totalRegistros = registrosHistorial.length;
-    const etapaActual = getEtapaActual(0);
+    const etapaActual = getEtapaActual(obtenerDiasTranscurridos());
 
     if (isOffline) {
         alerta.className = "alerta-box offline";
@@ -464,7 +645,7 @@ function actualizarEstadoGeneral() {
 }
 
 // ============================================================
-// 11. CONEXIÓN (CORREGIDO)
+// 12. CONEXIÓN
 // ============================================================
 
 function actualizarEstadoOffline(offline) {
@@ -491,6 +672,7 @@ function actualizarEstadoOffline(offline) {
     }
     actualizarPanelCrecimiento();
     actualizarEstadoGeneral();
+    actualizarAsistente();
 }
 
 function reiniciarTimeout() {
@@ -501,7 +683,7 @@ function reiniciarTimeout() {
 }
 
 // ============================================================
-// 12. CHAT
+// 13. ASISTENTE Y CHAT (COMPLETO)
 // ============================================================
 
 const preguntasChip = [
@@ -513,32 +695,214 @@ const preguntasChip = [
     { id: "bomba", texto: "🔌 Bomba", icono: "fa-power-off" },
     { id: "resumen", texto: "📊 Resumen general", icono: "fa-clipboard-list" },
     { id: "cosecha", texto: "🌱 ¿Cuándo cosechar?", icono: "fa-calendar-check" },
-    { id: "soluciones", texto: "🔧 Soluciones", icono: "fa-tools" },
+    { id: "soluciones", texto: "🔧 Todas las soluciones", icono: "fa-tools" },
     { id: "etapa", texto: "🌿 Etapa actual", icono: "fa-seedling" }
 ];
+
+function actualizarAsistente() {
+    const container = document.getElementById("consejosContainer");
+    const estadoGeneral = document.getElementById("estado-general");
+
+    if (!datosActuales || !registrosHistorial || !registrosHistorial.length) {
+        if (container) container.innerHTML = `<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Analizando datos...</div>`;
+        return;
+    }
+
+    const cultivo = getCultivoInfo();
+    const totalRegistros = registrosHistorial.length;
+    const dias = obtenerDiasTranscurridos();
+    const etapaActual = getEtapaActual(dias);
+    const offline = getOffline();
+    const lastUpdate = getLastUpdate();
+
+    if (offline) {
+        if (estadoGeneral) { estadoGeneral.innerHTML = `📡 SIN DATOS | ${totalRegistros} reg.`; estadoGeneral.style.color = "#ef4444"; }
+        if (container) {
+            container.innerHTML = `
+                <div class="consejo consejo-offline">
+                    <div class="consejo-icono"><i class="fas fa-microchip"></i></div>
+                    <div class="consejo-contenido">
+                        <h4>📡 ESP32 SIN TRANSMITIR DATOS</h4>
+                        <p>El sistema sigue funcionando de forma autónoma.</p>
+                        <p style="margin-top:8px;color:#fcd34d;"><strong>🤖 MODO AUTÓNOMO ACTIVO</strong></p>
+                        <ul>
+                            <li>📊 ${totalRegistros} registros históricos</li>
+                            <li>🌱 ${etapaActual.nombre} (Día ${dias})</li>
+                            <li>⏱️ Última actualización: ${lastUpdate ? lastUpdate.toLocaleTimeString() : '--'}</li>
+                        </ul>
+                        <p style="margin-top:8px;color:#fca5a5;">🔍 Verifica: conexión WiFi, alimentación y programa del ESP32.</p>
+                    </div>
+                </div>
+            `;
+        }
+        return;
+    }
+
+    let problemas = [], advertencias = [];
+    for (const sensor in configuracion) {
+        const valor = Number(datosActuales[configuracion[sensor].campo]);
+        if (!Number.isFinite(valor) || valor === -273.15) continue;
+        const analisis = analizarSensor(sensor, valor);
+        if (analisis.estado.estado === "danger") {
+            problemas.push({ sensor, analisis, valor });
+        } else if (analisis.estado.estado === "warning" || analisis.anomalia) {
+            advertencias.push({ sensor, analisis, valor });
+        }
+    }
+
+    if (estadoGeneral) {
+        if (problemas.length) {
+            estadoGeneral.innerHTML = `🚨 ${problemas.length} problema(s) | 📊 ${totalRegistros}`;
+            estadoGeneral.style.color = "#fca5a5";
+            estadoGeneral.style.animation = "pulse-offline 1s infinite";
+        } else if (advertencias.length) {
+            estadoGeneral.innerHTML = `⚠️ ${advertencias.length} aviso(s) | 📊 ${totalRegistros}`;
+            estadoGeneral.style.color = "#fcd34d";
+            estadoGeneral.style.animation = "none";
+        } else {
+            const porcentaje = Math.min(100, Math.round((dias / cultivo.ciclo.promedio) * 100));
+            estadoGeneral.innerHTML = `✅ OK | 📊 ${totalRegistros} | 🌱 ${porcentaje}%`;
+            estadoGeneral.style.color = "#86efac";
+            estadoGeneral.style.animation = "none";
+        }
+    }
+
+    if (!container) return;
+    let html = "";
+
+    html += `
+        <div class="consejo consejo-info">
+            <div class="consejo-icono"><i class="fas fa-leaf"></i></div>
+            <div class="consejo-contenido">
+                <h4>🌱 ${cultivo.nombre} - ${cultivo.tipo}</h4>
+                <p>${cultivo.descripcion}</p>
+                <p style="margin-top:6px;">📊 ${totalRegistros} registros | 🌱 ${etapaActual.nombre} (Día ${dias})</p>
+                ${lastUpdate ? `<p style="margin-top:4px;color:#64748b;">⏱️ Última actualización: ${lastUpdate.toLocaleTimeString()}</p>` : ''}
+            </div>
+        </div>
+    `;
+
+    problemas.forEach(item => {
+        const c = configuracion[item.sensor];
+        const sol = item.analisis.soluciones || { soluciones: [], explicacion: "" };
+        const valorMostrar = item.sensor === 'luz' ? item.analisis.estado.texto : formato(item.valor, item.sensor);
+        html += `
+            <div class="consejo consejo-danger">
+                <div class="consejo-icono"><i class="fas ${c.icono}"></i></div>
+                <div class="consejo-contenido">
+                    <h4>🚨 ${c.nombre} - ¡REQUIERE ACCIÓN INMEDIATA!</h4>
+                    <p><strong>Valor actual:</strong> ${valorMostrar}</p>
+                    <p>${item.analisis.significado}</p>
+                    ${sol.explicacion ? `<p style="margin-top:6px;color:#c4b5fd;">💡 ${sol.explicacion}</p>` : ''}
+                    ${sol.soluciones && sol.soluciones.length > 0 ? `
+                        <p style="margin-top:8px;color:#fcd34d;"><strong>🔧 SOLUCIONES:</strong></p>
+                        <ul>
+                            ${sol.soluciones.map(s => `<li>${s}</li>`).join('')}
+                        </ul>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    });
+
+    advertencias.forEach(item => {
+        const c = configuracion[item.sensor];
+        const sol = item.analisis.soluciones || { soluciones: [], explicacion: "" };
+        const valorMostrar = item.sensor === 'luz' ? item.analisis.estado.texto : formato(item.valor, item.sensor);
+        html += `
+            <div class="consejo consejo-warning">
+                <div class="consejo-icono"><i class="fas ${c.icono}"></i></div>
+                <div class="consejo-contenido">
+                    <h4>⚠️ ${c.nombre} - Presta atención</h4>
+                    <p><strong>Valor actual:</strong> ${valorMostrar}</p>
+                    <p>${item.analisis.tendencia.texto}</p>
+                    ${sol.soluciones && sol.soluciones.length > 0 ? `
+                        <p style="margin-top:8px;color:#fcd34d;"><strong>🔧 Recomendaciones:</strong></p>
+                        <ul>
+                            ${sol.soluciones.slice(0, 4).map(s => `<li>${s}</li>`).join('')}
+                        </ul>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    });
+
+    if (!problemas.length && !advertencias.length) {
+        html += `
+            <div class="consejo consejo-ok">
+                <div class="consejo-icono"><i class="fas fa-circle-check"></i></div>
+                <div class="consejo-contenido">
+                    <h4>✅ Todo en orden</h4>
+                    <p>${cultivo.nombre} está en condiciones óptimas para ${etapaActual.nombre}.</p>
+                    <ul>
+                        <li>📊 ${totalRegistros} registros analizados</li>
+                        <li>🌱 ${etapaActual.nombre} (Día ${dias})</li>
+                        <li>📈 ${Math.min(100, Math.round((dias / cultivo.ciclo.promedio) * 100))}% completado</li>
+                    </ul>
+                </div>
+            </div>
+        `;
+    }
+
+    container.innerHTML = html;
+}
+
+// ============================================================
+// 14. INICIAR CHAT
+// ============================================================
 
 function iniciarChat() {
     if (chatIniciado) return;
     chatIniciado = true;
+
     const cultivo = getCultivoInfo();
-    const etapaActual = getEtapaActual(0);
-    const mensaje = `🌱 ¡Hola! Soy tu asistente de ${cultivo.nombre}.\n\n📅 Etapa: ${etapaActual.nombre}\n\n💡 Elige una pregunta.`;
-    agregarMensaje(mensaje, "bot");
+    const dias = obtenerDiasTranscurridos();
+    const etapaActual = getEtapaActual(dias);
+    const offline = getOffline();
+    const lastUpdate = getLastUpdate();
+
+    let mensajeInicial =
+        `🌱 ¡Hola! Soy tu asistente de ${cultivo.nombre}.\n\n` +
+        `📅 Día ${dias} - Etapa: ${etapaActual.nombre}\n` +
+        `${etapaActual.descripcion || 'Cultivo en crecimiento'}\n\n` +
+        `💡 Elige una pregunta o toca un sensor para ver análisis con soluciones adaptadas a tu etapa.\n` +
+        `📌 Puedes cambiar de etapa usando los botones arriba (vista previa antes de aplicar).`;
+
+    if (offline) {
+        mensajeInicial += 
+            `\n\n📡 <strong>⚠️ ESP32 SIN TRANSMITIR DATOS</strong>\n` +
+            `🤖 El sistema sigue funcionando de forma autónoma.\n` +
+            `⏳ Última actualización: ${lastUpdate ? lastUpdate.toLocaleTimeString() : '--'}`;
+    }
+
+    agregarMensaje(mensajeInicial, "bot");
     renderizarChips();
 }
 
 function renderizarChips() {
     const cont = document.getElementById("chatChips");
     if (!cont) return;
-    cont.innerHTML = preguntasChip.map(p => `
-        <button class="chip" onclick="window.preguntar('${p.id}')">
+
+    const offline = getOffline();
+    let hayUrgencia = false;
+    if (datosActuales && !offline) {
+        for (const sensor in configuracion) {
+            const valor = Number(datosActuales[configuracion[sensor].campo]);
+            if (Number.isFinite(valor) && valor !== -273.15) {
+                const estado = obtenerEstado(sensor, valor);
+                if (estado.estado === "danger") { hayUrgencia = true; break; }
+            }
+        }
+    }
+
+    let html = preguntasChip.map(p => `
+        <button class="chip ${offline ? 'chip-offline' : ''} ${hayUrgencia && (p.id === 'soluciones' || p.id === 'resumen') ? 'chip-urgente' : ''}" onclick="window.preguntar('${p.id}')" ${offline ? 'disabled' : ''}>
             <i class="fas ${p.icono}"></i> ${p.texto}
         </button>
-    `).join("") + `
-        <button class="chip chip-reset" onclick="window.preguntar('reiniciar')">
-            <i class="fas fa-rotate"></i> Reiniciar
-        </button>
-    `;
+    `).join("");
+
+    html += `<button class="chip chip-reset" onclick="window.preguntar('reiniciar')"><i class="fas fa-rotate"></i> Reiniciar chat</button>`;
+    cont.innerHTML = html;
 }
 
 function agregarMensaje(texto, tipo) {
@@ -551,6 +915,35 @@ function agregarMensaje(texto, tipo) {
     cont.scrollTop = cont.scrollHeight;
 }
 
+function generarSolucionesCompletas() {
+    const cultivo = getCultivoInfo();
+    const dias = obtenerDiasTranscurridos();
+    const etapaActual = getEtapaActual(dias);
+    let mensaje = `🔧 <strong>SOLUCIONES para ${cultivo.nombre}</strong>\n\n📅 Día ${dias} - ${etapaActual.nombre}\n📊 ${registrosHistorial.length} registros\n\n`;
+
+    if (getOffline()) mensaje += `📡 <strong>⚠️ ESP32 SIN DATOS EN TIEMPO REAL</strong>\n\n`;
+
+    for (const sensor in configuracion) {
+        const valor = Number(datosActuales[configuracion[sensor].campo]);
+        if (!Number.isFinite(valor) || valor === -273.15) continue;
+        const analisis = analizarSensor(sensor, valor);
+        const c = configuracion[sensor];
+        const sol = analisis.soluciones || { soluciones: [], explicacion: "" };
+
+        mensaje += `<strong>${c.nombre}:</strong> `;
+        if (sensor === 'luz') mensaje += `${analisis.estado.texto}\n`;
+        else mensaje += `${formato(valor, sensor)} (${analisis.estado.texto})\n`;
+        if (sol.explicacion) mensaje += `💡 ${sol.explicacion}\n`;
+        if (sol.soluciones && sol.soluciones.length > 0) mensaje += `🔹 ${sol.soluciones.join('\n🔹 ')}\n`;
+        mensaje += `📊 Tendencia: ${analisis.tendencia.texto}\n\n`;
+    }
+    return mensaje;
+}
+
+// ============================================================
+// 15. FUNCIÓN PREGUNTAR (EXPUESTA GLOBAL)
+// ============================================================
+
 window.preguntar = function(id) {
     if (id === "reiniciar") {
         document.getElementById("chatMensajes").innerHTML = "";
@@ -558,65 +951,182 @@ window.preguntar = function(id) {
         iniciarChat();
         return;
     }
-    const datos = datosActuales;
-    if (!datos) { agregarMensaje("⏳ Esperando datos...", "bot"); return; }
-    
+
+    if (!datosActuales || !registrosHistorial || !registrosHistorial.length) {
+        const p = preguntasChip.find(x => x.id === id);
+        if (p) agregarMensaje(p.texto, "user");
+        agregarMensaje("⏳ Esperando datos... inténtalo en unos segundos.", "bot");
+        return;
+    }
+
+    const cultivo = getCultivoInfo();
+    const dias = obtenerDiasTranscurridos();
+    const etapaActual = getEtapaActual(dias);
+    const offline = getOffline();
+    const lastUpdate = getLastUpdate();
+
+    // ===== MODO OFFLINE =====
+    if (offline) {
+        if (id === "resumen") {
+            agregarMensaje("📊 Dame un resumen general", "user");
+            let mensaje = `📊 <strong>RESUMEN (MODO AUTÓNOMO)</strong>\n\n📡 ESP32 SIN DATOS\n📈 ${registrosHistorial.length} registros\n🌱 ${etapaActual.nombre} (Día ${dias})\n⏱️ Última actualización: ${lastUpdate ? lastUpdate.toLocaleTimeString() : '--'}\n\n`;
+            for (const sensor in configuracion) {
+                const valor = Number(datosActuales[configuracion[sensor].campo]);
+                if (!Number.isFinite(valor) || valor === -273.15) continue;
+                const analisis = analizarSensor(sensor, valor);
+                mensaje += `${configuracion[sensor].nombre}: ${sensor === 'luz' ? analisis.estado.texto : formato(valor, sensor)} (${analisis.estado.texto})\n`;
+            }
+            mensaje += `\n🔍 Verifica la conexión del ESP32.`;
+            agregarMensaje(mensaje, "bot");
+            return;
+        }
+
+        if (id === "cosecha") {
+            agregarMensaje("🌱 ¿Cuándo estará listo?", "user");
+            const porcentaje = Math.min(100, Math.round((dias / cultivo.ciclo.promedio) * 100));
+            let mensaje = `🌱 <strong>Análisis de COSECHA</strong>\n\n📅 ${dias} días | 📈 ${porcentaje}% completado\n🌿 ${etapaActual.nombre}\n\n📡 Modo autónomo activo.\n`;
+            if (porcentaje >= 100) mensaje += `✅ ¡LISTO PARA COSECHAR!`;
+            else if (porcentaje > 80) mensaje += `🔜 Casi listo.`;
+            else mensaje += `🌱 Sigue cuidando las plantas.`;
+            agregarMensaje(mensaje, "bot");
+            return;
+        }
+
+        if (id === "soluciones") {
+            agregarMensaje("🔧 Dame todas las soluciones", "user");
+            agregarMensaje(generarSolucionesCompletas(), "bot");
+            return;
+        }
+
+        const c = configuracion[id];
+        if (c) {
+            const p = preguntasChip.find(x => x.id === id);
+            if (p) agregarMensaje(p.texto, "user");
+            const valor = Number(datosActuales[c.campo]);
+            if (!Number.isFinite(valor) || valor === -273.15) {
+                agregarMensaje(`⏳ No tengo lectura de ${c.nombre}.`, "bot");
+                return;
+            }
+            const analisis = analizarSensor(id, valor);
+            let mensaje = `📡 <strong>MODO AUTÓNOMO</strong>\n\n`;
+            mensaje += `<strong>${c.nombre}:</strong> ${sensor === 'luz' ? analisis.estado.texto : formato(valor, id)} (${analisis.estado.texto})\n\n`;
+            mensaje += `📡 ESP32 no está transmitiendo datos nuevos.\n🤖 El sistema sigue funcionando de forma autónoma.`;
+            agregarMensaje(mensaje, "bot");
+            return;
+        }
+
+        if (id === "bomba") {
+            agregarMensaje("🔌 ¿Cómo está la bomba?", "user");
+            const valor = datosActuales.bomba === true || datosActuales.bomba === "true" || datosActuales.bomba === 1;
+            let mensaje = `📡 <strong>MODO AUTÓNOMO</strong>\n\n`;
+            mensaje += valor ? "✅ La bomba está ENCENDIDA (último estado conocido)." : "⏸️ La bomba está APAGADA (último estado conocido).";
+            mensaje += "\n\n🤖 El sistema sigue su ciclo programado.";
+            agregarMensaje(mensaje, "bot");
+            return;
+        }
+
+        if (id === "etapa") {
+            agregarMensaje("🌿 ¿En qué etapa estoy?", "user");
+            let mensaje = `🌿 <strong>Etapa actual</strong>\n\n📅 Día ${dias}\n🌱 ${etapaActual.nombre}\n${etapaActual.descripcion || ''}\n\n📡 Modo autónomo activo.\n\n📋 <strong>Todas las etapas:</strong>\n`;
+            cultivo.etapas.forEach(e => mensaje += `${e.nombre === etapaActual.nombre ? '👉' : '  '} Día ${e.dia}: ${e.nombre}\n`);
+            agregarMensaje(mensaje, "bot");
+            return;
+        }
+
+        agregarMensaje("📡 El sistema está en MODO AUTÓNOMO.", "bot");
+        return;
+    }
+
+    // ===== MODO NORMAL =====
     if (id === "resumen") {
         agregarMensaje("📊 Dame un resumen general", "user");
-        let msg = `📊 <strong>RESUMEN</strong>\n\n`;
+        const porcentaje = Math.min(100, Math.round((dias / cultivo.ciclo.promedio) * 100));
+        let mensaje = `📊 <strong>RESUMEN de ${cultivo.nombre}</strong>\n\n📈 ${registrosHistorial.length} registros\n🌱 ${etapaActual.nombre} (Día ${dias})\n📈 ${porcentaje}% completado\n⏱️ ${lastUpdate ? lastUpdate.toLocaleTimeString() : '--'}\n\n`;
         for (const sensor in configuracion) {
-            const valor = Number(datos[configuracion[sensor].campo]);
-            if (!Number.isFinite(valor)) continue;
-            const estado = obtenerEstado(sensor, valor);
-            msg += `${configuracion[sensor].nombre}: ${formato(valor, sensor)} (${estado.texto})\n`;
+            const valor = Number(datosActuales[configuracion[sensor].campo]);
+            if (!Number.isFinite(valor) || valor === -273.15) continue;
+            const analisis = analizarSensor(sensor, valor);
+            mensaje += `${configuracion[sensor].nombre}: ${sensor === 'luz' ? analisis.estado.texto : formato(valor, sensor)} (${analisis.estado.texto})\n`;
         }
-        agregarMensaje(msg, "bot");
+        mensaje += `\n💡 Los rangos se ajustan según tu etapa.`;
+        agregarMensaje(mensaje, "bot");
         return;
     }
-    
+
     if (id === "cosecha") {
         agregarMensaje("🌱 ¿Cuándo estará listo?", "user");
-        const cultivo = getCultivoInfo();
-        const msg = `🌱 <strong>Análisis de COSECHA</strong>\n\n🌿 ${getEtapaActual(0).nombre}\n\n🌱 Sigue cuidando las plantas.`;
-        agregarMensaje(msg, "bot");
+        const porcentaje = Math.min(100, Math.round((dias / cultivo.ciclo.promedio) * 100));
+        let mensaje = `🌱 <strong>Análisis de COSECHA</strong>\n\n📅 ${dias} días | 📈 ${porcentaje}% completado\n🌿 ${etapaActual.nombre}\n\n`;
+        if (porcentaje >= 100) mensaje += `✅ ¡LISTO PARA COSECHAR!`;
+        else if (porcentaje > 80) mensaje += `🔜 Casi listo.`;
+        else mensaje += `🌱 Sigue cuidando las plantas.`;
+        agregarMensaje(mensaje, "bot");
         return;
     }
-    
+
     if (id === "etapa") {
         agregarMensaje("🌿 ¿En qué etapa estoy?", "user");
-        const cultivo = getCultivoInfo();
-        const etapa = getEtapaActual(0);
-        let msg = `🌿 <strong>Etapa actual</strong>\n\n🌱 ${etapa.nombre}\n\n📋 <strong>Todas las etapas:</strong>\n`;
-        cultivo.etapas.forEach(e => {
-            msg += `${e.nombre === etapa.nombre ? '👉' : '  '} Día ${e.dia}: ${e.nombre}\n`;
-        });
-        agregarMensaje(msg, "bot");
+        let mensaje = `🌿 <strong>Etapa actual</strong>\n\n📅 Día ${dias}\n🌱 ${etapaActual.nombre}\n${etapaActual.descripcion || ''}\n\n📋 <strong>Todas las etapas:</strong>\n`;
+        cultivo.etapas.forEach(e => mensaje += `${e.nombre === etapaActual.nombre ? '👉' : '  '} Día ${e.dia}: ${e.nombre}\n`);
+        mensaje += `\n💡 Puedes cambiar de etapa con los botones en el panel de progreso.`;
+        agregarMensaje(mensaje, "bot");
         return;
     }
-    
+
+    if (id === "soluciones") {
+        agregarMensaje("🔧 Dame todas las soluciones", "user");
+        agregarMensaje(generarSolucionesCompletas(), "bot");
+        return;
+    }
+
     if (id === "bomba") {
         agregarMensaje("🔌 ¿Cómo está la bomba?", "user");
-        const valor = datos.bomba === true || datos.bomba === "true" || datos.bomba === 1;
+        const valor = datosActuales.bomba === true || datosActuales.bomba === "true" || datosActuales.bomba === 1;
         agregarMensaje(valor ? "✅ La bomba está ENCENDIDA." : "⏸️ La bomba está APAGADA.", "bot");
         return;
     }
-    
+
     const c = configuracion[id];
     if (!c) { agregarMensaje("❓ No entendí la pregunta.", "bot"); return; }
+
     const p = preguntasChip.find(x => x.id === id);
+    const valor = Number(datosActuales[c.campo]);
     if (p) agregarMensaje(p.texto, "user");
-    const valor = Number(datos[c.campo]);
-    if (!Number.isFinite(valor)) {
-        agregarMensaje(`⏳ No tengo lectura de ${c.nombre}.`, "bot");
+
+    if (!Number.isFinite(valor) || valor === -273.15) {
+        if (id === 'temp-agua' && valor === -273.15) {
+            agregarMensaje(`🌊 El sensor de temperatura del agua está defectuoso (-273.15°C).\n\n🔧 Verifica la conexión del sensor DS18B20, reinicia el ESP32 o reemplázalo.`, "bot");
+        } else {
+            agregarMensaje(`⏳ No tengo lectura de ${c.nombre}.`, "bot");
+        }
         return;
     }
-    const estado = obtenerEstado(id, valor);
-    const msg = `<strong>${c.nombre}:</strong> ${formato(valor, id)} (${estado.texto})`;
-    agregarMensaje(msg, "bot");
+
+    const analisis = analizarSensor(id, valor);
+    const sol = analisis.soluciones || { soluciones: [], explicacion: "" };
+
+    let mensaje = `<strong>${c.nombre}:</strong> `;
+    if (id === 'luz') mensaje += `${analisis.estado.texto}\n\n`;
+    else mensaje += `${formato(valor, id)} (${analisis.estado.texto})\n\n`;
+    mensaje += `📊 ${analisis.significado}\n\n`;
+    mensaje += `📈 Tendencia: ${analisis.tendencia.texto}\n\n`;
+
+    if (sol.soluciones && sol.soluciones.length > 0) {
+        mensaje += `🔧 <strong>SOLUCIONES:</strong>\n`;
+        mensaje += sol.soluciones.map(s => `• ${s}`).join('\n');
+        if (sol.explicacion) mensaje += `\n\n💡 ${sol.explicacion}`;
+    } else {
+        mensaje += `✅ Todo en orden. Sigue así.`;
+    }
+
+    agregarMensaje(mensaje, "bot");
 };
 
+// Exponer funciones globales
+window.preguntar = window.preguntar;
+
 // ============================================================
-// 13. FIREBASE - VALOR ACTUAL
+// 16. FIREBASE - VALOR ACTUAL
 // ============================================================
 
 onValue(valorActualRef, snapshot => {
@@ -631,6 +1141,7 @@ onValue(valorActualRef, snapshot => {
     }
     actualizarTarjetaBomba(datos.bomba);
     actualizarEstadoGeneral();
+    actualizarAsistente();
     console.log("📊 Datos recibidos:", {
         pH: datos.PH, temp: datos.Temperatura_Ambiente,
         tempAgua: datos.Temperatura_Agua, humedad: datos.Humedad_Ambiente,
@@ -639,7 +1150,7 @@ onValue(valorActualRef, snapshot => {
 }, error => console.error("Firebase error:", error));
 
 // ============================================================
-// 14. FIREBASE - HISTORIAL
+// 17. FIREBASE - HISTORIAL
 // ============================================================
 
 onValue(historialRef, snapshot => {
@@ -651,33 +1162,88 @@ onValue(historialRef, snapshot => {
     actualizarTabla();
     actualizarGrafica();
     actualizarEstadoGeneral();
+    actualizarAsistente();
 }, error => console.error("Firebase error (Historial):", error));
 
 // ============================================================
-// 15. SELECTOR DE CULTIVO
+// 18. SELECTOR DE CULTIVO
 // ============================================================
 
 document.getElementById('selectorCultivo').addEventListener('change', function() {
     cultivoSeleccionado = this.value;
     actualizarPanelCrecimiento();
     actualizarEstadoGeneral();
+    actualizarAsistente();
     if (datosActuales) {
         for (const sensor in configuracion) {
             actualizarTarjeta(sensor, Number(datosActuales[configuracion[sensor].campo]));
         }
         actualizarTarjetaBomba(datosActuales.bomba);
     }
+    document.getElementById("chatMensajes").innerHTML = "";
+    chatIniciado = false;
+    iniciarChat();
 });
 
 // ============================================================
-// 16. INICIALIZACIÓN
+// 19. INICIALIZACIÓN
 // ============================================================
 
+// Cargar fecha de siembra
+const fechaGuardada = localStorage.getItem('fechaSiembra');
+const fechaPanel = document.getElementById('fechaSiembraPanel');
+if (fechaGuardada) {
+    fechaPanel.value = fechaGuardada;
+    fechaInicio = fechaGuardada;
+} else {
+    const hoy = new Date();
+    const fechaStr = hoy.toISOString().split('T')[0];
+    fechaPanel.value = fechaStr;
+    fechaInicio = fechaStr;
+    localStorage.setItem('fechaSiembra', fechaStr);
+}
+
+// Eventos de fecha
+fechaPanel.addEventListener('change', function() {
+    if (isOffline) return;
+    fechaInicio = this.value;
+    localStorage.setItem('fechaSiembra', this.value);
+    actualizarPanelCrecimiento();
+    actualizarEstadoGeneral();
+    actualizarAsistente();
+});
+
+document.getElementById('btnHoy').addEventListener('click', function() {
+    if (isOffline) return;
+    const hoy = new Date();
+    const fechaStr = hoy.toISOString().split('T')[0];
+    fechaPanel.value = fechaStr;
+    fechaInicio = fechaStr;
+    localStorage.setItem('fechaSiembra', fechaStr);
+    actualizarPanelCrecimiento();
+    actualizarEstadoGeneral();
+    actualizarAsistente();
+});
+
+document.getElementById('btnSemana').addEventListener('click', function() {
+    if (isOffline) return;
+    const hoy = new Date();
+    hoy.setDate(hoy.getDate() - 7);
+    const fechaStr = hoy.toISOString().split('T')[0];
+    fechaPanel.value = fechaStr;
+    fechaInicio = fechaStr;
+    localStorage.setItem('fechaSiembra', fechaStr);
+    actualizarPanelCrecimiento();
+    actualizarEstadoGeneral();
+    actualizarAsistente();
+});
+
+// Renderizar e iniciar
 renderizarSensores();
 actualizarPanelCrecimiento();
 reiniciarTimeout();
 setTimeout(() => { iniciarChat(); }, 500);
 
-console.log("🚀 Dashboard Aeroponia UTS - Versión completa con detección de sensor defectuoso");
+console.log("🚀 Dashboard Aeroponia UTS - Versión completa con chat integrado");
 console.log("✅ Firebase conectado y esperando datos...");
-console.log("🌊 Si la temperatura del agua es -273.15°C, se mostrará como 'Sensor defectuoso'");
+console.log("🌊 Temperatura agua -273.15°C se detecta como sensor defectuoso");
